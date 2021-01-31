@@ -1,0 +1,13 @@
+version: "2"
+
+services:
+  maav-mission9:
+    image: maav-mission9
+    privileged: true
+    volumes:
+      - .:/mission9-2021:rw
+    environment:
+      - DISPLAY
+    network_mode: "host"
+    container_name: maav-mission9
+    command: "/bin/bash --init-file scripts/source-ros.sh"

@@ -35,6 +35,12 @@ REPOSITORY          TAG             IMAGE ID            CREATED         SIZE
 maav-mission9       latest          <hex-hash>          30 minutes ago  1.5GB
 ```
 
+You can now spin up a docker container as follows:
+
+```
+$ docker-compose run --rm maav-mission9
+```
+
 ### Option 2: Download a Docker image file and load it
 TODO. Once the Docker testng enironment is setup, we will have a download link.
 
@@ -44,7 +50,7 @@ $ docker load -i maav-mission9-2-6-2021.img
 ```
 
 ### Run the MAAV Docker Container
-Start the Docker container using this command:
+This is an alternative to spinning up the Docker container (though `docker-compose` detailed above is preferred). To run it, us this command:
 
 TODO: There may be other flags/arguments to add later.
 ```

@@ -1,0 +1,2 @@
+
+-DCATKIN_DEVEL_PREFIX=/mission9-2021/software/devel -DCMAKE_INSTALL_PREFIX=/mission9-2021/software/install -G Unix Makefiles

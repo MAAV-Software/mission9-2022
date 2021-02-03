@@ -7,7 +7,8 @@ RUN apt-get install -y \
     ros-melodic-rqt \
     ros-melodic-rqt-common-plugins
 
-# TODO Other ROS tools?
+# Other tools
+# vim preferrably
 
 # Setup Catkin Workspace
 # TODO

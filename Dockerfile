@@ -17,4 +17,6 @@ RUN apt-get install -y \
 # TODO
 
 # Install PX4 Stuff
-# TODO
+RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive \
+    cd PX4-Autopilot \
+    make px4_sitl gazebo

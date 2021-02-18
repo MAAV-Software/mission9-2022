@@ -1,4 +1,6 @@
 #!/bin/bash
 
-eho "Installing Gazebo"
-curl -sSl http://get.gazebosim.org | sh
+echo "Installing Gazebo"
+sleep 3
+
+curl -sSL http://get.gazebosim.org | sh # installs ROS as well

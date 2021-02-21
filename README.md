@@ -20,7 +20,7 @@ this way.)
 
 (Let MAAV Software leadership know if you have trouble with Docker install.)
 
-### Option 1: Build the Docker image from source
+### Option 1: Build the Docker image from source (recommended)
 Clone this repository, and run this command:
 
 ```
@@ -40,6 +40,8 @@ You can now spin up a docker container as follows:
 ```
 $ docker-compose run --rm maav-mission9
 ```
+
+**As a note**, anytime we (MAAV leadership) let you know that we have updated the Dockerfile, all you need to do is run the `docker build` command detailed above!
 
 ### Option 2: Download a Docker image file and load it
 TODO. Once the Docker testng enironment is setup, we will have a download link.

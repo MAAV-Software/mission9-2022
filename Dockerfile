@@ -10,7 +10,7 @@ RUN apt-get install -y \
     ros-melodic-rqt-common-plugins
 
 
-# Install Gazebo and PX4 Firmware
+# Install Gazebo, PX4
 ADD scripts/setup-gazebo.sh /setup-gazebo.sh
 RUN chmod +x /setup-gazebo.sh
 RUN /setup-gazebo.sh
@@ -19,4 +19,7 @@ RUN chmod +x /setup-px4.sh
 RUN /setup-px4.sh
 ADD scripts/setup-sim.sh /setup-sim.sh
 RUN chmod +x /setup-sim.sh
+RUN /setup-sim.sh
+
+
 

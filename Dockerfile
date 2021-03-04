@@ -59,13 +59,10 @@ RUN apt-get install -y \
 RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy
 
 # Install Gazebo
-RUN echo "Installing Gazebo"
-RUN sleep 3
-RUN curl -sSL http://get.gazebosim.org | sh # installs ROS as well
+RUN curl -sSL http://get.gazebosim.org | sh
+# TODO Installs ROS as well...???
 
 # Install PX4 Firmware and AutoPilot
-RUN echo "Installing PX4 firmware"
-RUN sleep 3
 # TODO Rename px4_sitl to px4?
 RUN mkdir -p /px4_sitl && cd /px4_sitl && \
     git clone https://github.com/PX4/PX4-Autopilot.git --recursive

@@ -64,24 +64,37 @@ RUN curl -sSL http://get.gazebosim.org | sh
 
 # Install PX4 Firmware and AutoPilot
 # TODO Rename px4_sitl to px4?
-RUN mkdir -p /px4_sitl && cd /px4_sitl && \
-    git clone https://github.com/PX4/PX4-Autopilot.git --recursive
-RUN cd PX4-Autopilot/ && git submodule update --init --recursive
-RUN echo "PX4: Configuring modemanager"
-RUN usermod -a -G dialout $USER && apt-get remove modemmanager -y
+RUN mkdir -p /px4_sitl
+WORKDIR /px4_sitl
+RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+WORKDIR /px4_sitl/PX4-Autopilot
+RUN git submodule update --init --recursive
+
+# TODO This does not run correctly. But since the Docker containter
+# runs as root it is probably unnecessary?
+# RUN usermod -a -G dialout $USER
+
+# Remove modemmanager because of a possible bug with failing to "upload" over USB
+RUN apt-get remove modemmanager -y
+
 RUN echo "PX4: Installing dependencies"
-RUN if [ ! -f exe/QGroundControl.AppImage ]; then \
-        wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin \
-        chmod a+x /bin/QGroundControl.AppImage \
-    fi
+# RUN if [ ! -f exe/QGroundControl.AppImage ]; then \
+#         wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin \
+#         chmod a+x /bin/QGroundControl.AppImage \
+#     fi
+RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin && \
+    chmod a+x /bin/QGroundControl.AppImage
 
 # Clone and build sitl
 # TODO Should this be re-using the px4-sitl directory?
-RUN cd /px4_sitl && git clone --recursive https://github.com/PX4/sitl_gazebo.git
-RUN cd sitl_gazebo/ && mkdir build && cd build
-# RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
+WORKDIR /px4_sitl
+RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
+RUN mkdir /px4_sitl/sitl_gazebo/build
+WORKDIR /px4_sitl/sitl_gazebo/build/
+# TODO Set env variable in Dockerfile?
+RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
 # TODO Implement num cores thing from last semester
-# RUN cmake .. && make -j && make install
+RUN cmake .. && make -j2 && make install
 
 # RUN cd /px4_sitl/PX4-Autopilot
 # RUN DONT_RUN=1 make px4_sitl_default gazebo

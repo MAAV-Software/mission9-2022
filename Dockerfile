@@ -56,7 +56,7 @@ RUN apt-get install -y \
     python3-numpy
 
 # Install some Python tools
-RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy
+RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging
 
 # Install Gazebo
 RUN curl -sSL http://get.gazebosim.org | sh
@@ -98,3 +98,6 @@ RUN cmake .. && make -j2 && make install
 
 # RUN cd /px4_sitl/PX4-Autopilot
 # RUN DONT_RUN=1 make px4_sitl_default gazebo
+
+# Set the PWD to root for convenience
+WORKDIR /

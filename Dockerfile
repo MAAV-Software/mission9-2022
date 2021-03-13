@@ -59,11 +59,10 @@ RUN apt-get install -y \
 RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging
 
 # Install Gazebo
+# TODO This installs ROS as well. Is this a problem?
 RUN curl -sSL http://get.gazebosim.org | sh
-# TODO Installs ROS as well...???
 
 # Install PX4 Firmware and AutoPilot
-# TODO Rename px4_sitl to px4?
 RUN mkdir -p /px4_sitl
 WORKDIR /px4_sitl
 RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
@@ -86,16 +85,15 @@ RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl
     chmod a+x /bin/QGroundControl.AppImage
 
 # Clone and build sitl
-# TODO Should this be re-using the px4-sitl directory?
 WORKDIR /px4_sitl
 RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
 RUN mkdir /px4_sitl/sitl_gazebo/build
 WORKDIR /px4_sitl/sitl_gazebo/build/
 # TODO Set env variable in Dockerfile?
 RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
-# TODO Implement num cores thing from last semester
-RUN cmake .. && make -j2 && make install
+RUN cmake .. && make -j3 && make install
 
+# Commands to run Gazebo simulator. NOT DONE IN Dockerfile
 # RUN cd /px4_sitl/PX4-Autopilot
 # RUN DONT_RUN=1 make px4_sitl_default gazebo
 

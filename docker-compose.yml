@@ -11,6 +11,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       - DISPLAY
+      - QT_X11_NO_MITSHM=1yy
     network_mode: "host"
     container_name: maav-mission9
     command: "/bin/bash --init-file scripts/source-ros.sh"
@@ -23,6 +24,18 @@ services:
       # TODO Fix GUI settings for Windows
       - $HOME/.Xauthority:/root/.Xauthority:rw
       - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY
+    network_mode: "host"
+    container_name: maav-mission9
+    command: "/bin/bash --init-file scripts/source-ros.sh"
+
+
+  mac:
+    image: maav-mission9
+    privileged: true
+    volumes:
+      - .:/mission9-2021:rw # Copy code into Docker container
     environment:
       - DISPLAY
     network_mode: "host"

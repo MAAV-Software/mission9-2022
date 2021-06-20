@@ -39,9 +39,9 @@ The Docker image should build successfully, but let us know if there's any issue
 This step is NOT a one-time setup. You will need to do this everytime you start working on MAAV software simulation.
 
 Open vcXsrv, and start it with these settings (in order of the pages seen in the startup wizard):
-1. Multiple Windows
-2. Check 'Allow from anyone', Uncheck 'Use LIBGL'
-3. Leave all settings as-is
+1. Leave all settings as-is (Multiple Windows, Display Number -1)
+2. Leave all settings as-is (Start no client)
+3. Uncheck Native opengl, Check Disable access control (leave other settings as-is)
 4. Click Finish
 
 Once vcXsrv is running, run this command in WSL:

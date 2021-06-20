@@ -6,8 +6,11 @@ This README document is a work-in-progress. We will populate this more later.
 ## Install and Simulator Setup Instructions
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.
+
 [Windows 10 / WSL 2](docs/WSL.md)
+
 [Mac (TODO)]()
+
 [Ubuntu / Other Linux Distro](docs/Linux.md)
 
 [Docker Additional Info](docs/Docker.md)
@@ -72,9 +75,9 @@ Simple GitHub Forking Tutorial:
 
 https://guides.github.com/activities/forking/
 
-Cloning repositories is a straightforward approach to making changes to shared repositories.
+Forking repositories is a straightforward approach to making changes to shared repositories.
 'Forked' repositories are personal copies of a shared project, in which you can make changes
-and then offer those changes up to the original project. 
+and then offer those changes up to the original project.
 
 If you are officially a member of MAAV Software, forking the repo is optional. However, forking
 gives you access control over your pushed changes - whereas anyone else on MAAV Software
@@ -84,11 +87,10 @@ can view and make changes to *any* branch that is not `master`.
 
 We will be using Docker to simulate the environment that will be on the
 vehicle's computing hardware. To setup the Docker image (a "snapshot" of the
-computer at a specific time and state) for this repo, follow these
-instructions.
+computer at a specific time and state) for this repo, follow
+[these instructions](docs/Docker.md) or the instructions specific to your system.
 
 We will also be using Gazebo to simulate vehicle behavior. This is done within
 the Docker container to ensure dependencies are setup correctly in our code.
 Gazebo is already installed for you if you follow the install instructions for
 your system.
-

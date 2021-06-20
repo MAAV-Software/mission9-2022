@@ -26,6 +26,8 @@ You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull
 
 ## Build the Docker Image
 
+For more information about using Docker, [see the Docker doc page.](./Docker.md)
+
 Inside the root folder of the software code you just cloned, run this command:
 ```
 docker build -t maav-mission9 .

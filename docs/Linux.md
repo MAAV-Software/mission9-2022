@@ -25,6 +25,8 @@ You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull
 
 ## Build the Docker Image
 
+For more information about using Docker, [see the Docker doc page.](./Docker.md)
+
 Inside the root folder of the software code you just cloned, run this command:
 ```
 docker build -t maav-mission9 .
@@ -32,11 +34,6 @@ docker build -t maav-mission9 .
 **Note the '.' at the end!**
 
 The Docker image should build successfully, but let us know if there's any issues or bugs you run into.
-
-TODO DISPLAY ENV VAR?
-```
-export DISPLAY="`grep nameserver /etc/resolv.conf | sed 's/nameserver //'`:0"
-```
 
 ## Start the Docker Container and Gazebo
 

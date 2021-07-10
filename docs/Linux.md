@@ -7,6 +7,12 @@ By the end of this tutorial, you should have the software repository on your sys
 You will need Docker, which is used to create images or "snapshots" of virtual systems and run them in containers. Install Docker using this command:
 ```
 sudo apt-get install docker
+sudo apt-get install docker.io
+sudo apt-get install docker-compose
+```
+Alternatively, you can use the snap installer:
+```
+sudo snap install docker
 ```
 
 You can test if Docker is setup correctly by running this command:
@@ -29,7 +35,7 @@ For more information about using Docker, [see the Docker doc page.](./Docker.md)
 
 Inside the root folder of the software code you just cloned, run this command:
 ```
-docker build -t maav-mission9 .
+sudo docker build -t maav-mission9 .
 ```
 **Note the '.' at the end!**
 
@@ -44,12 +50,16 @@ xhost +
 
 Start the Docker container using this command:
 ```
-docker-compose run --rm linux
+sudo docker-compose run --rm linux
 ```
 
 Once inside the Docker container, you can run a test to see if PX4 and Gazebo will start and display the simulator, as expected. Run this command:
 ```
 cd /px4_sitl/PX4-Autopilot && make px4_sitl -j1 gazebo
+```
+Note that you may need to install additional dependencies to successfully compile:
+```
+pip3 install --user jsonschema
 ```
 Note that this will compile some necessary binaries (which only happens one time until the Docker container is shut down) before starting PX4-Autopilot and Gazebo.
 

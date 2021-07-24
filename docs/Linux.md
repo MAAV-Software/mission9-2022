@@ -57,13 +57,31 @@ Once inside the Docker container, you can run a test to see if PX4 and Gazebo wi
 ```
 cd /px4_sitl/PX4-Autopilot && make px4_sitl -j1 gazebo
 ```
-Note that you may need to install additional dependencies to successfully compile:
-```
-pip3 install --user jsonschema
-```
+
 Note that this will compile some necessary binaries (which only happens one time until the Docker container is shut down) before starting PX4-Autopilot and Gazebo.
 
 You can also debug opening Gazebo without PX4 running (which is useful for testing GUI settings) by using this command:
 ```
 gazebo --verbose
+```
+
+## Give Docker Permissions
+
+Taken from https://docs.docker.com/engine/install/linux-postinstall/
+
+So far, you have needed to run docker with ```sudo``` but this is a bit annoying. It is much easier to simply give Docker the permissions it needs to run correctly. Run the following commands - for more iformation, refer to the above link.
+
+````
+sudo groupadd docker
+sudo usermod -aG docker $USER
+```
+Restart the computer
+```
+newgrp docker
+```
+
+Verify that you have done the above steps correctly by running the following hellow world command:
+
+```
+docker run hello-world
 ```

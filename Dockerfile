@@ -57,7 +57,7 @@ RUN apt-get install -y \
     python3-numpy
 
 # Install some Python tools
-RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging
+RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema
 
 # Install Gazebo
 # TODO This installs ROS as well. Is this a problem?

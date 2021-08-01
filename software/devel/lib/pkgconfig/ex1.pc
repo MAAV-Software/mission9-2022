@@ -1,0 +1,8 @@
+prefix=/mission9-2021/software/devel
+
+Name: ex1
+Description: Description of ex1
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

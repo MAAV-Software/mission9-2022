@@ -1,0 +1,8 @@
+prefix=/mission9-2021/software/install
+
+Name: navigation_test
+Description: Description of navigation_test
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

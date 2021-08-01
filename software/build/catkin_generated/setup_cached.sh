@@ -7,7 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/mission9-2021/software/devel:$CMAKE_PREFIX_PATH"
 export PWD='/mission9-2021/software/build'
-export ROSLISP_PACKAGE_DIRECTORIES='/mission9-2021/software/devel/share/common-lisp'
-export ROS_PACKAGE_PATH="/mission9-2021/software/src:$ROS_PACKAGE_PATH"

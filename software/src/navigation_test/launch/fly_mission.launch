@@ -1,0 +1,6 @@
+<launch>
+
+<arg name="file"/>
+<node pkg="navigation_test" name="fly_mission" output="screen" args="$(arg file)" type="fly_mission"/>
+
+</launch>

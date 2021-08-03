@@ -17,6 +17,9 @@ navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/m
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandTOL.h
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandTOLRequest.h
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandTOLResponse.h
+navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandVtolTransition.h
+navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandVtolTransitionRequest.h
+navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/CommandVtolTransitionResponse.h
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/SetMode.h
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/SetModeRequest.h
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o: /opt/ros/melodic/include/mavros_msgs/SetModeResponse.h

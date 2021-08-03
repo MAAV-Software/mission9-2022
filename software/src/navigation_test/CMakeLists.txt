@@ -215,3 +215,6 @@ target_link_libraries(offboard_node ${catkin_LIBRARIES})
 add_executable(fly_mission src/fly_mission.cpp)
 target_link_libraries(fly_mission ${catkin_LIBRARIES})
 
+add_executable(takeoff_n_switch src/takeoff_n_switch.cpp)
+target_link_libraries(takeoff_n_switch ${catkin_LIBRARIES})
+

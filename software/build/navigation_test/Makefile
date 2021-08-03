@@ -66,6 +66,17 @@ list_install_components/fast: list_install_components
 
 .PHONY : list_install_components/fast
 
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
+
 # Special rule for the target install/strip
 install/strip: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
@@ -124,17 +135,6 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # The main all target
 all: cmake_check_build_system
 	cd /mission9-2021/software/build && $(CMAKE_COMMAND) -E cmake_progress_start /mission9-2021/software/build/CMakeFiles /mission9-2021/software/build/navigation_test/CMakeFiles/progress.marks
@@ -181,6 +181,21 @@ offboard_node: navigation_test/CMakeFiles/offboard_node.dir/rule
 offboard_node/fast:
 	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/offboard_node.dir/build.make navigation_test/CMakeFiles/offboard_node.dir/build
 .PHONY : offboard_node/fast
+
+# Convenience name for target.
+navigation_test/CMakeFiles/takeoff_n_switch.dir/rule:
+	cd /mission9-2021/software/build && $(MAKE) -f CMakeFiles/Makefile2 navigation_test/CMakeFiles/takeoff_n_switch.dir/rule
+.PHONY : navigation_test/CMakeFiles/takeoff_n_switch.dir/rule
+
+# Convenience name for target.
+takeoff_n_switch: navigation_test/CMakeFiles/takeoff_n_switch.dir/rule
+
+.PHONY : takeoff_n_switch
+
+# fast build rule for target.
+takeoff_n_switch/fast:
+	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/takeoff_n_switch.dir/build.make navigation_test/CMakeFiles/takeoff_n_switch.dir/build
+.PHONY : takeoff_n_switch/fast
 
 # Convenience name for target.
 navigation_test/CMakeFiles/waypoint_publisher.dir/rule:
@@ -293,6 +308,33 @@ src/pub_setpoints.cpp.s:
 	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/waypoint_publisher.dir/build.make navigation_test/CMakeFiles/waypoint_publisher.dir/src/pub_setpoints.cpp.s
 .PHONY : src/pub_setpoints.cpp.s
 
+src/takeoff_n_switch.o: src/takeoff_n_switch.cpp.o
+
+.PHONY : src/takeoff_n_switch.o
+
+# target to build an object file
+src/takeoff_n_switch.cpp.o:
+	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/takeoff_n_switch.dir/build.make navigation_test/CMakeFiles/takeoff_n_switch.dir/src/takeoff_n_switch.cpp.o
+.PHONY : src/takeoff_n_switch.cpp.o
+
+src/takeoff_n_switch.i: src/takeoff_n_switch.cpp.i
+
+.PHONY : src/takeoff_n_switch.i
+
+# target to preprocess a source file
+src/takeoff_n_switch.cpp.i:
+	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/takeoff_n_switch.dir/build.make navigation_test/CMakeFiles/takeoff_n_switch.dir/src/takeoff_n_switch.cpp.i
+.PHONY : src/takeoff_n_switch.cpp.i
+
+src/takeoff_n_switch.s: src/takeoff_n_switch.cpp.s
+
+.PHONY : src/takeoff_n_switch.s
+
+# target to generate assembly for a file
+src/takeoff_n_switch.cpp.s:
+	cd /mission9-2021/software/build && $(MAKE) -f navigation_test/CMakeFiles/takeoff_n_switch.dir/build.make navigation_test/CMakeFiles/takeoff_n_switch.dir/src/takeoff_n_switch.cpp.s
+.PHONY : src/takeoff_n_switch.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -300,15 +342,16 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... list_install_components"
+	@echo "... rebuild_cache"
 	@echo "... install/strip"
 	@echo "... offboard_node"
+	@echo "... takeoff_n_switch"
 	@echo "... install/local"
 	@echo "... test"
 	@echo "... waypoint_publisher"
 	@echo "... install"
 	@echo "... fly_mission"
 	@echo "... edit_cache"
-	@echo "... rebuild_cache"
 	@echo "... src/fly_mission.o"
 	@echo "... src/fly_mission.i"
 	@echo "... src/fly_mission.s"
@@ -318,6 +361,9 @@ help:
 	@echo "... src/pub_setpoints.o"
 	@echo "... src/pub_setpoints.i"
 	@echo "... src/pub_setpoints.s"
+	@echo "... src/takeoff_n_switch.o"
+	@echo "... src/takeoff_n_switch.i"
+	@echo "... src/takeoff_n_switch.s"
 .PHONY : help
 
 

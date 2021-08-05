@@ -3,6 +3,9 @@
 
 navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o
  /mission9-2021/software/src/navigation_test/src/offboard_node.cpp
+ /opt/ros/melodic/include/geographic_msgs/GeoPoint.h
+ /opt/ros/melodic/include/geographic_msgs/GeoPose.h
+ /opt/ros/melodic/include/geographic_msgs/GeoPoseStamped.h
  /opt/ros/melodic/include/geometry_msgs/Point.h
  /opt/ros/melodic/include/geometry_msgs/Pose.h
  /opt/ros/melodic/include/geometry_msgs/PoseStamped.h
@@ -11,6 +14,7 @@ navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o
  /opt/ros/melodic/include/geometry_msgs/Twist.h
  /opt/ros/melodic/include/geometry_msgs/TwistWithCovariance.h
  /opt/ros/melodic/include/geometry_msgs/Vector3.h
+ /opt/ros/melodic/include/mavros_msgs/Altitude.h
  /opt/ros/melodic/include/mavros_msgs/CommandBool.h
  /opt/ros/melodic/include/mavros_msgs/CommandBoolRequest.h
  /opt/ros/melodic/include/mavros_msgs/CommandBoolResponse.h
@@ -86,6 +90,8 @@ navigation_test/CMakeFiles/offboard_node.dir/src/offboard_node.cpp.o
  /opt/ros/melodic/include/ros/wall_timer.h
  /opt/ros/melodic/include/ros/wall_timer_options.h
  /opt/ros/melodic/include/rosconsole/macros_generated.h
+ /opt/ros/melodic/include/sensor_msgs/NavSatFix.h
+ /opt/ros/melodic/include/sensor_msgs/NavSatStatus.h
  /opt/ros/melodic/include/std_msgs/Header.h
  /opt/ros/melodic/include/xmlrpcpp/XmlRpcDecl.h
  /opt/ros/melodic/include/xmlrpcpp/XmlRpcValue.h

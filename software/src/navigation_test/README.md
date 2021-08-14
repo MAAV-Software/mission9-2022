@@ -58,7 +58,7 @@ function. You can look at the sample JSON file in the ```missions/``` directory.
 
 Once we have a list of waypoints, we can then call the ```runMission()``` function. Because the node is subscribed to the drone's current position, the function
 constantly checks if the drone is at the ```curr_wp``` plus or minus a couple meters. It rapidly publishes this ```curr_wp``` (which can be thought of as
-the next waypoint the drone has to go to) to either the ```next_local_waypoint``` or ```next_local_waypoint``` topic that we created. Later, the
+the next waypoint the drone has to go to) to either the ```next_local_waypoint``` or ```next_global_waypoint``` topic that we created. Later, the
 "offboard_node" subscribes to this topic and sends the waypoints to the drone. If the drone gets close enough to the waypoint that is being published, 
 the ```curr_wp``` is set to be the next waypoint in the list until the mission is complete.
 

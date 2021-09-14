@@ -23,6 +23,9 @@ make px4_sitl gazebo_standard_vtol
 
 In the second terminal start the ros master
 ```bash
+source /opt/ros/melodic/setup.bash
+```
+```bash
 roscore
 ```
 

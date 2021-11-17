@@ -92,7 +92,7 @@ RUN mkdir /px4_sitl/sitl_gazebo/build
 WORKDIR /px4_sitl/sitl_gazebo/build/
 # TODO Set env variable in Dockerfile?
 RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
-RUN cmake .. && make -j3 && make install
+RUN cmake .. && make -j1 && make install
 
 # Commands to run Gazebo simulator. NOT DONE IN Dockerfile
 # RUN cd /px4_sitl/PX4-Autopilot

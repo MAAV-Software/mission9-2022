@@ -1,17 +1,41 @@
-FROM ros:melodic
+FROM dorowu/ubuntu-desktop-lxde-vnc:bionic-lxqt
+
+#FROM ros:melodic
+EXPOSE 5900
 
 WORKDIR /
 
 RUN apt-get update
 
-# Install ROS GUI extensions
-RUN apt-get install -y \
-    ros-melodic-rqt \
-    ros-melodic-rqt-common-plugins \
-    ros-melodic-mavros \
-    ros-melodic-mavros-extras
+# Fix dumb dirmngr
+RUN sudo apt purge dirmngr -y && sudo apt update && sudo apt install dirmngr -y
 
-# Install other Linux apps
+# Adding keys for ROS
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
+    
+# Make it so we dont have to source devel every freaking time
+# RUN /bin/bash -c "echo 'source /mission9-2021/software/devel/setup.bash' >> ~/.bashrc && \
+#                   echo 'source /mission9-2021/software/devel/setup.bash' >> /root/.bashrc "
+
+RUN apt-get update
+
+
+
+# # Install ROS GUI extensions
+# RUN apt-get install -y \
+#     ros-melodic-rqt \
+#     ros-melodic-rqt-common-plugins \
+#     ros-melodic-mavros \
+#     ros-melodic-mavros-extras
+
+
+
+# RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+# RUN /bin/bash -c "source ~/.bashrc"
+
+# # Install other Linux apps
 RUN apt-get install -y \
     curl \
     git \
@@ -56,47 +80,28 @@ RUN apt-get install -y \
     python3-jinja2 \
     python3-numpy
 
+
+RUN pip3 install -U future 
+
 # Install some Python tools
-RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema
+RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
+
+
+RUN wget https://raw.githubusercontent.com/PX4/Devguide/master/build_scripts/ubuntu_sim_ros_melodic.sh
+RUN bash ubuntu_sim_ros_melodic.sh
 
 # Install Gazebo
 # TODO This installs ROS as well. Is this a problem?
-RUN curl -sSL http://get.gazebosim.org | sh
+# RUN curl -sSL http://get.gazebosim.org | sh
 
-# Install PX4 Firmware and AutoPilot
-RUN mkdir -p /px4_sitl
-WORKDIR /px4_sitl
-RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
-WORKDIR /px4_sitl/PX4-Autopilot
-RUN git submodule update --init --recursive
+# RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
+#     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
+#     apt-get update && \
+#     apt-get install -y gazebo9 libgazebo9-dev && \
+#     apt-get install -y ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-ros-control
 
-# TODO This does not run correctly. But since the Docker containter
-# runs as root it is probably unnecessary?
-# RUN usermod -a -G dialout $USER
 
-# Remove modemmanager because of a possible bug with failing to "upload" over USB
-RUN apt-get remove modemmanager -y
 
-RUN echo "PX4: Installing dependencies"
-# RUN if [ ! -f exe/QGroundControl.AppImage ]; then \
-#         wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin \
-#         chmod a+x /bin/QGroundControl.AppImage \
-#     fi
-RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin && \
-    chmod a+x /bin/QGroundControl.AppImage
-
-# Clone and build sitl
-WORKDIR /px4_sitl
-RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
-RUN mkdir /px4_sitl/sitl_gazebo/build
-WORKDIR /px4_sitl/sitl_gazebo/build/
-# TODO Set env variable in Dockerfile?
-RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
-RUN cmake .. && make -j3 && make install
-
-# Commands to run Gazebo simulator. NOT DONE IN Dockerfile
-# RUN cd /px4_sitl/PX4-Autopilot
-# RUN DONT_RUN=1 make px4_sitl_default gazebo
 
 # Set the PWD to root for convenience
 WORKDIR /

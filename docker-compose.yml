@@ -1,5 +1,6 @@
 version: "2"
 
+
 services:
   linux:
     image: maav-mission9
@@ -7,7 +8,7 @@ services:
     volumes:
       - .:/mission9-2021:rw  # Copy code into Docker container
       - $HOME/.Xauthority:/root/.Xauthority:rw
-      - /tmp/.X11-unix:/tmp/.X11-unix
+        #- /tmp/.X11-unix:/tmp/.X11-unix
     environment:
       - DISPLAY
       - QT_X11_NO_MITSHM=1yy
@@ -30,10 +31,12 @@ services:
   mac:
     image: maav-mission9
     privileged: true
+    ports:
+        - 5900:5900
+        - 6080:80
     volumes:
-      - .:/mission9-2021:rw # Copy code into Docker container
-    environment:
-      - DISPLAY
+        - .:/mission9-2021:rw # Copy code into Docker container
     network_mode: "host"
     container_name: maav-mission9
     command: "/bin/bash --init-file scripts/source-ros.sh"
+

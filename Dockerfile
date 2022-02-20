@@ -10,27 +10,21 @@ RUN apt-get update
 # Fix dumb dirmngr
 RUN sudo apt purge dirmngr -y && sudo apt update && sudo apt install dirmngr -y
 
-# Adding keys for ROS
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+#installing ROS http://wiki.ros.org/melodic/Installation/Ubuntu
+RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+RUN sudo apt update
+RUN sudo apt install -y ros-melodic-desktop-full
 
-    
-# Make it so we dont have to source devel every freaking time
-# RUN /bin/bash -c "echo 'source /mission9-2021/software/devel/setup.bash' >> ~/.bashrc && \
-#                   echo 'source /mission9-2021/software/devel/setup.bash' >> /root/.bashrc "
+SHELL ["/bin/bash", "-c"]
+
+RUN echo "source /opt/ros/melodic/setup.bash" >> /root/.bashrc
+RUN source /root/.bashrc
+RUN sudo apt install -y python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential
+RUN sudo rosdep init
+RUN rosdep update
 
 RUN apt-get update
-
-
-
-# # Install ROS GUI extensions
-# RUN apt-get install -y \
-#     ros-melodic-rqt \
-#     ros-melodic-rqt-common-plugins \
-#     ros-melodic-mavros \
-#     ros-melodic-mavros-extras
-
-
 
 # RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 # RUN /bin/bash -c "source ~/.bashrc"
@@ -86,22 +80,70 @@ RUN pip3 install -U future
 # Install some Python tools
 RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
 
+#Install Mavlink
+WORKDIR /usr/include
+RUN git clone https://github.com/mavlink/c_library_v2.git --recursive
+RUN rm -rf /usr/include/c_library_v2/.git
+RUN mv /usr/include/c_library_v2/* /usr/include
+RUN rmdir /usr/include/c_library_v2
 
-RUN wget https://raw.githubusercontent.com/PX4/Devguide/master/build_scripts/ubuntu_sim_ros_melodic.sh
-RUN bash ubuntu_sim_ros_melodic.sh
+#Install Gazebo
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+RUN sudo apt-get update
+RUN sudo apt-get install libgazebo11
+RUN curl -sSL http://get.gazebosim.org | sh
 
-# Install Gazebo
-# TODO This installs ROS as well. Is this a problem?
-# RUN curl -sSL http://get.gazebosim.org | sh
+#Install PX4
+RUN mkdir -p /px4_sitl
+WORKDIR /px4_sitl
+RUN git clone https://github.com/PX4/PX4-Autopilot.git 
+WORKDIR /px4_sitl/PX4-Autopilot
+RUN git checkout a6274bc
+RUN git submodule update --init --recursive
 
-# RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list' && \
-#     wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add - && \
-#     apt-get update && \
-#     apt-get install -y gazebo9 libgazebo9-dev && \
-#     apt-get install -y ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-ros-control
+RUN apt-get remove modemmanager -y
+
+RUN echo "PX4: Installing dependencies"
+RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin && \
+    chmod a+x /bin/QGroundControl.AppImage
+
+#Install mavros
+RUN apt-get install -y \
+    ros-melodic-rqt \
+    ros-melodic-rqt-common-plugins \
+    ros-melodic-mavros \
+    ros-melodic-mavros-extras
+
+# Clone sitl
+WORKDIR /px4_sitl
+RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
+RUN mkdir /px4_sitl/sitl_gazebo/build
+WORKDIR /px4_sitl/sitl_gazebo/build/
+
+# Build Sitl
+RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
+RUN cmake .. && make -j3 && make install
+
 
 
 
 
 # Set the PWD to root for convenience
 WORKDIR /
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

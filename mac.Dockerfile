@@ -87,8 +87,8 @@ RUN rm -rf /usr/include/c_library_v2/.git
 RUN mv /usr/include/c_library_v2/* /usr/include
 RUN rmdir /usr/include/c_library_v2
 
-COPY ./commands.sh /stuff/commands.sh
-
+COPY ./commands.sh /scripts/commands.sh
+RUN chmod +x /scripts/commands.sh
 
 # Set the PWD to root for convenience
 WORKDIR /

@@ -3,6 +3,8 @@
 ## Introduction
 This README document is a work-in-progress. We will populate this more later.
 
+**Note: this branch is only up to date for WSL users, do not try to use for other platforms. Please only refer to [this documentation](docs/WSL.md) for up to date information.**
+
 ## Install and Simulator Setup Instructions
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.

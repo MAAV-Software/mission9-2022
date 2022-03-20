@@ -19,12 +19,20 @@ services:
   wsl:
     image: maav-mission9
     privileged: true
+    ports:
+      - 5900:5900
+      - 6080:80
     volumes:
       - .:/mission9-2021:rw  # Copy code into Docker container
-    environment:
-      - DISPLAY
-      # - LIBGL_ALWAYS_INDIRECT=1  # Does not work when enabled
-    network_mode: "host"
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      - /dev/video2:/dev/video2
+      - /dev/video3:/dev/video3
+      - /dev/video4:/dev/video4
+      - /dev/video5:/dev/video5
+      - /dev/media0:/dev/media0
+      - /dev/media1:/dev/media1
     container_name: maav-mission9
     command: "/bin/bash --init-file scripts/source-ros.sh"
 

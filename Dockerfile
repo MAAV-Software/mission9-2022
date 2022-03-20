@@ -80,31 +80,60 @@ RUN pip3 install -U future
 # Install some Python tools
 RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
 
-#Install Mavlink
-WORKDIR /usr/include
-RUN git clone https://github.com/mavlink/c_library_v2.git --recursive
-RUN rm -rf /usr/include/c_library_v2/.git
-RUN mv /usr/include/c_library_v2/* /usr/include
-RUN rmdir /usr/include/c_library_v2
+#Install Gazebo
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+RUN sudo apt-get update
+RUN sudo apt-get -y install libgazebo11
+RUN curl -sSL http://get.gazebosim.org | sh
 
-COPY ./commands.sh /scripts/commands.sh
-RUN chmod +x /scripts/commands.sh
+#Install PX4
+RUN mkdir -p /px4_sitl
+WORKDIR /px4_sitl
+RUN git clone https://github.com/PX4/PX4-Autopilot.git 
+WORKDIR /px4_sitl/PX4-Autopilot
+RUN git checkout a6274bc
+RUN git submodule update --init --recursive
+
+RUN apt-get remove modemmanager -y
+
+RUN echo "PX4: Installing dependencies"
+RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin && \
+    chmod a+x /bin/QGroundControl.AppImage
+
+#Install mavros
+RUN apt-get install -y \
+    ros-melodic-rqt \
+    ros-melodic-rqt-common-plugins \
+    ros-melodic-mavros \
+    ros-melodic-mavros-extras
+
+#Install Mavlink
+WORKDIR /usr
+RUN git clone https://github.com/mavlink/c_library_v2.git --recursive
+RUN rm -rf /usr/c_library_v2/.git
+RUN mv /usr/c_library_v2/* /usr
+RUN rmdir /usr/c_library_v2
+
+# Clone sitl
+WORKDIR /px4_sitl
+RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
+RUN mkdir /px4_sitl/sitl_gazebo/build
+WORKDIR /px4_sitl/sitl_gazebo/build/
+
+# Build Sitl
+RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
+RUN cmake .. && make -j3 && make install
+
+# Install Realsense test utilities
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+RUN sudo apt-get -y install librealsense2-dkms
+RUN sudo apt-get -y install librealsense2-utils
+
+# Fix stuff
+RUN export LANG=C.UTF-8
+RUN export LC_ALL=C.UTF-8
 
 # Set the PWD to root for convenience
 WORKDIR /
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

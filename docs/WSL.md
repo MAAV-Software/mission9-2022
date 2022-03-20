@@ -15,11 +15,10 @@ If the command doesn't work, check your Docker Desktop settings or make sure Doc
 
 ## Clone the Software Code
 
-Use this command in WSL:
+Use this command in WSL (take note of where you clone this to, you will need it for later):
 ```
 $ git clone --branch wsl-realsense https://github.com/MAAV-Software/mission9-2021.git
 ```
-
 You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull` but must login with username/password for `push`), or [SSH](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) (more secure, uses private SSH key created on your system that matches with your public key on your Github account, can have an optional password, and is checked for any remote Git operation). We recommend SSH, but you can use whichever is easier for you.
 
 ## Build Modified Linux Kernel and Install USB Packages
@@ -64,7 +63,7 @@ $ nano /mnt/c/Users/<user>/.wslconfig
 [wsl2]
 kernel=c:[wherever you want]\\maavImage
 ```
-Next, install USBIPD-WIN from [this link](https://github.com/dorssel/usbipd-win/releases), which provides the bridge from Windows to WSL for USB devices. Finally, close all your WSL shells and open a new command prompt (not WSL) as administrator. Run `wsl --shutdown` and open a new WSL window. Enter `uname -r` and you should see the line `[version-number]-maav-modified-WSL2+` if everything worked correctly. Finally, install the Realsense drivers:
+Next, install USBIPD-WIN from [this link](https://github.com/dorssel/usbipd-win/releases) (download the `.msi` installer from the latest release), which provides the bridge from Windows to WSL for USB devices. Finally, close all your WSL shells and open a new command prompt (not WSL) as administrator. Run `wsl --shutdown` and open a new WSL window. Enter `uname -r` and you should see the line `[version-number]-maav-modified-WSL2+` if everything worked correctly. Finally, install the Realsense drivers:
 ```
 $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
 $ sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
@@ -102,7 +101,7 @@ $ usbipd wsl detach --busid [BUSID]
 
 Initialize the USB drivers and start the Docker container using these commands in WSL from the MAAV repo (you will need to do this every time you want to work in the Docker container):
 ```
-$ sudo bash /scripts/probe_drivers.sh
+$ sudo bash scripts/probe_drivers.sh
 $ docker-compose up wsl
 ```
 Navigate to [localhost:6080](http://localhost:6080) in your browser and you should see a desktop environment. Open a new terminal window.

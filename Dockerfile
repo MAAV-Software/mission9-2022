@@ -1,6 +1,5 @@
-FROM dorowu/ubuntu-desktop-lxde-vnc:bionic-lxqt
+FROM dorowu/ubuntu-desktop-lxde-vnc:focal-lxqt
 
-#FROM ros:melodic
 EXPOSE 5900
 
 WORKDIR /
@@ -10,45 +9,44 @@ RUN apt-get update
 # Fix dumb dirmngr
 RUN sudo apt purge dirmngr -y && sudo apt update && sudo apt install dirmngr -y
 
-#installing ROS http://wiki.ros.org/melodic/Installation/Ubuntu
+#installing ROS http://wiki.ros.org/noetic/Installation/Ubuntu
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-RUN sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+RUN sudo apt install -y curl
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
 RUN sudo apt update
-RUN sudo apt install -y ros-melodic-desktop-full
+RUN sudo apt install -y ros-noetic-desktop-full
 
 SHELL ["/bin/bash", "-c"]
 
-RUN echo "source /opt/ros/melodic/setup.bash" >> /root/.bashrc
+RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc
 RUN source /root/.bashrc
-RUN sudo apt install -y python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential
+RUN sudo apt install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
 RUN sudo rosdep init
 RUN rosdep update
 
 RUN apt-get update
 
-# RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
-# RUN /bin/bash -c "source ~/.bashrc"
-
 # # Install other Linux apps
 RUN apt-get install -y \
-    curl \
     git \
     zip \
     qtcreator \
     cmake \
+    g++ \
+    unzip \
     build-essential \
     genromfs \
     ninja-build \
     libopencv-dev \
     wget \
     python-argparse \
-    python-empy \
-    python-toml \
-    python-numpy \
-    python-dev \
+    python3-empy \
+    python3-toml \
+    python3-numpy \
+    python3-dev \
     python3 \
     python3-pip \
-    python-yaml \
+    python3-yaml \
     # From PX4 SITL script
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
@@ -70,12 +68,9 @@ RUN apt-get install -y \
     protobuf-compiler \
     libeigen3-dev \
     libxml2-utils \
-    python-rospkg \
+    python3-rospkg \
     python3-jinja2 \
     python3-numpy
-
-
-RUN pip3 install -U future 
 
 # Install some Python tools
 RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
@@ -103,12 +98,12 @@ RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl
 
 #Install mavros
 RUN apt-get install -y \
-    ros-melodic-rqt \
-    ros-melodic-rqt-common-plugins \
-    ros-melodic-mavros \
-    ros-melodic-mavros-extras
+    ros-noetic-rqt \
+    ros-noetic-rqt-common-plugins \
+    ros-noetic-mavros \
+    ros-noetic-mavros-extras
 
-#Install Mavlink
+# Install Mavlink
 WORKDIR /usr
 RUN git clone https://github.com/mavlink/c_library_v2.git --recursive
 RUN rm -rf /usr/c_library_v2/.git
@@ -125,15 +120,28 @@ WORKDIR /px4_sitl/sitl_gazebo/build/
 RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
 RUN cmake .. && make -j3 && make install
 
-# Install Realsense test utilities
-RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
-RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
-RUN sudo apt-get -y install librealsense2-dkms
-RUN sudo apt-get -y install librealsense2-utils
-
 # Fix stuff
 RUN export LANG=C.UTF-8
 RUN export LC_ALL=C.UTF-8
+
+# Install OpenCV
+RUN mkdir opencv
+WORKDIR /opencv
+RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip
+RUN unzip opencv.zip
+RUN rm opencv.zip
+RUN mkdir -p build
+WORKDIR /opencv/build
+RUN cmake ../opencv-4.x
+RUN cmake --build .
+RUN sudo make install
+
+# # Install ROS packages
+RUN apt-get install -y \
+    ros-noetic-realsense2-camera \
+    ros-noetic-realsense2-description \ 
+    ros-noetic-vision-visp \ 
+    ros-noetic-find-object-2d
 
 # Set the PWD to root for convenience
 WORKDIR /

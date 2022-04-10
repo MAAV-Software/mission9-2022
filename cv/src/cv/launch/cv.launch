@@ -1,0 +1,14 @@
+<launch>
+  <node
+    pkg="cv"
+    type="cv_pub"
+    name="cv_pub"
+    output="screen"
+  />
+  <node
+    pkg="cv"
+    type="cv_sub"
+    name="cv_sub"
+    output="screen"
+  />
+</launch> 

@@ -39,6 +39,7 @@ RUN apt-get install -y \
     ninja-build \
     libopencv-dev \
     wget \
+    at-spi2-core \
     python-argparse \
     python3-empy \
     python3-toml \
@@ -125,18 +126,15 @@ RUN export LANG=C.UTF-8
 RUN export LC_ALL=C.UTF-8
 
 # Install OpenCV
-RUN mkdir opencv
-WORKDIR /opencv
-RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/4.x.zip
-RUN unzip opencv.zip
-RUN rm opencv.zip
-RUN mkdir -p build
-WORKDIR /opencv/build
-RUN cmake ../opencv-4.x
-RUN cmake --build .
-RUN sudo make install
+RUN sudo apt install -y libopencv-dev
 
-# # Install ROS packages
+# Install Realsense
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+RUN sudo apt-get install -y librealsense2-dkms
+RUN sudo apt-get install -y librealsense2-utils
+
+# Install ROS packages
 RUN apt-get install -y \
     ros-noetic-realsense2-camera \
     ros-noetic-realsense2-description \ 

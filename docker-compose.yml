@@ -24,6 +24,9 @@ services:
       - 6080:80
     volumes:
       - .:/mission9-2021:rw  # Copy code into Docker container
+    #   - /tmp/.X11-unix:/tmp/.X11-unix
+    # environment:
+    #   - DISPLAY
     devices:
       - /dev/video0:/dev/video0
       - /dev/video1:/dev/video1

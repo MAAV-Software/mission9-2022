@@ -1,36 +1,53 @@
-FROM ros:melodic
+FROM dorowu/ubuntu-desktop-lxde-vnc:focal-lxqt
+
+EXPOSE 5900
 
 WORKDIR /
 
 RUN apt-get update
 
-# Install ROS GUI extensions
-RUN apt-get install -y \
-    ros-melodic-rqt \
-    ros-melodic-rqt-common-plugins \
-    ros-melodic-mavros \
-    ros-melodic-mavros-extras
+# Fix dumb dirmngr
+RUN sudo apt purge dirmngr -y && sudo apt update && sudo apt install dirmngr -y
 
-# Install other Linux apps
+#installing ROS http://wiki.ros.org/noetic/Installation/Ubuntu
+RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN sudo apt install -y curl
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+RUN sudo apt update
+RUN sudo apt install -y ros-noetic-desktop-full
+
+SHELL ["/bin/bash", "-c"]
+
+RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc
+RUN source /root/.bashrc
+RUN sudo apt install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+RUN sudo rosdep init
+RUN rosdep update
+
+RUN apt-get update
+
+# # Install other Linux apps
 RUN apt-get install -y \
-    curl \
     git \
     zip \
     qtcreator \
     cmake \
+    g++ \
+    unzip \
     build-essential \
     genromfs \
     ninja-build \
     libopencv-dev \
     wget \
+    at-spi2-core \
     python-argparse \
-    python-empy \
-    python-toml \
-    python-numpy \
-    python-dev \
+    python3-empy \
+    python3-toml \
+    python3-numpy \
+    python3-dev \
     python3 \
     python3-pip \
-    python-yaml \
+    python3-yaml \
     # From PX4 SITL script
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
@@ -52,51 +69,77 @@ RUN apt-get install -y \
     protobuf-compiler \
     libeigen3-dev \
     libxml2-utils \
-    python-rospkg \
+    python3-rospkg \
     python3-jinja2 \
     python3-numpy
 
 # Install some Python tools
-RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema
+RUN python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
 
-# Install Gazebo
-# TODO This installs ROS as well. Is this a problem?
+#Install Gazebo
+RUN sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+RUN wget https://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+RUN sudo apt-get update
+RUN sudo apt-get -y install libgazebo11
 RUN curl -sSL http://get.gazebosim.org | sh
 
-# Install PX4 Firmware and AutoPilot
+#Install PX4
 RUN mkdir -p /px4_sitl
 WORKDIR /px4_sitl
-RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+RUN git clone https://github.com/PX4/PX4-Autopilot.git 
 WORKDIR /px4_sitl/PX4-Autopilot
+RUN git checkout a6274bc
 RUN git submodule update --init --recursive
 
-# TODO This does not run correctly. But since the Docker containter
-# runs as root it is probably unnecessary?
-# RUN usermod -a -G dialout $USER
-
-# Remove modemmanager because of a possible bug with failing to "upload" over USB
 RUN apt-get remove modemmanager -y
 
 RUN echo "PX4: Installing dependencies"
-# RUN if [ ! -f exe/QGroundControl.AppImage ]; then \
-#         wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin \
-#         chmod a+x /bin/QGroundControl.AppImage \
-#     fi
 RUN wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.AppImage -P /bin && \
     chmod a+x /bin/QGroundControl.AppImage
 
-# Clone and build sitl
+#Install mavros
+RUN apt-get install -y \
+    ros-noetic-rqt \
+    ros-noetic-rqt-common-plugins \
+    ros-noetic-mavros \
+    ros-noetic-mavros-extras
+
+# Install Mavlink
+WORKDIR /usr
+RUN git clone https://github.com/mavlink/c_library_v2.git --recursive
+RUN rm -rf /usr/c_library_v2/.git
+RUN mv /usr/c_library_v2/* /usr
+RUN rmdir /usr/c_library_v2
+
+# Clone sitl
 WORKDIR /px4_sitl
 RUN git clone --recursive https://github.com/PX4/sitl_gazebo.git
 RUN mkdir /px4_sitl/sitl_gazebo/build
 WORKDIR /px4_sitl/sitl_gazebo/build/
-# TODO Set env variable in Dockerfile?
+
+# Build Sitl
 RUN CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
 RUN cmake .. && make -j3 && make install
 
-# Commands to run Gazebo simulator. NOT DONE IN Dockerfile
-# RUN cd /px4_sitl/PX4-Autopilot
-# RUN DONT_RUN=1 make px4_sitl_default gazebo
+# Fix stuff
+RUN export LANG=C.UTF-8
+RUN export LC_ALL=C.UTF-8
+
+# Install OpenCV
+RUN sudo apt install -y libopencv-dev
+
+# Install Realsense
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+RUN sudo apt-get install -y librealsense2-dkms
+RUN sudo apt-get install -y librealsense2-utils
+
+# Install ROS packages
+RUN apt-get install -y \
+    ros-noetic-realsense2-camera \
+    ros-noetic-realsense2-description \ 
+    ros-noetic-vision-visp \ 
+    ros-noetic-find-object-2d
 
 # Set the PWD to root for convenience
 WORKDIR /

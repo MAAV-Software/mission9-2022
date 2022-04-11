@@ -3,13 +3,15 @@
 ## Introduction
 This README document is a work-in-progress. We will populate this more later.
 
+**Note: this branch is only up to date for WSL users, use with caution with other platforms.**
+
 ## Install and Simulator Setup Instructions
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.
 
 [Windows 10 / WSL 2](docs/WSL.md)
 
-[Mac (TODO)]()
+[Mac](docs/Mac.md)
 
 [Ubuntu / Other Linux Distro](docs/Linux.md)
 

@@ -9,9 +9,9 @@ This README document is a work-in-progress. We will populate this more later.
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.
 
-[Windows 10 / WSL 2](docs/WSL.md)
+[Windows / Mac (intel)](docs/VBox.md)
 
-[Mac](docs/Mac.md)
+[Mac (M1)](docs/Mac.md)
 
 [Ubuntu / Other Linux Distro](docs/Linux.md)
 
@@ -34,16 +34,16 @@ Make sure your identity through Git is setup well.
 # List current global config, which may contain identity info
 
 $ git config --global -l
-user.name=Jacob Minock
-user.email=jaminock@umich.edu
+user.name=Drew Scheffer
+user.email=drewskis@umich.edu
 core.editor=vim
 ...
 
 # Set or Change some things (for any repository you use)
 # Omit --global to just make it for THIS repository
 
-$ git config --global user.name "Jacob Minock"
-$ git config --global user.email "jaminock@umich.edu"
+$ git config --global user.name "Drew Scheffer"
+$ git config --global user.email "drewskis@umich.edu"
 ```
 
 ### Git Branches

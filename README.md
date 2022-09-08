@@ -1,5 +1,12 @@
 # MAAV Mission 9 Repo - 2021
 
+
+install git
+make install_everything executable
+
+
+
+
 ## Introduction
 This README document is a work-in-progress. We will populate this more later.
 

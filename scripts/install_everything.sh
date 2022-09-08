@@ -3,7 +3,7 @@ echo "MAAV 2022 Installation Script"
 #Get env 
 cd /
 
-#installing ROS http://wiki.ros.org/melodic/Installation/Ubuntu
+#installing ROS http://wiki.ros.org/noetic/Installation/Ubuntu
 echo "Step 1: Installing ROS"
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -35,14 +35,13 @@ apt-get install -y \
     libopencv-dev \
     wget \
     python-argparse \
-    python-empy \
-    python-toml \
+    python3-empy \
+    python3-toml \
     python-numpy \
     python-dev \
     python3 \
     python3-pip \
     python-yaml \
-    # From PX4 SITL script
     libgstreamer1.0-dev \
     libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-base \
@@ -63,7 +62,7 @@ apt-get install -y \
     protobuf-compiler \
     libeigen3-dev \
     libxml2-utils \
-    python-rospkg \
+    python3-rospkg \
     python3-jinja2 \
     python3-numpy
 
@@ -71,6 +70,8 @@ pip3 install -U future
 
 # Install some Python tools
 python3 -m pip install pandas jinja2 pyserial pyulog pyyaml numpy toml empy packaging jsonschema future 
+
+pip install --upgrade numpy
 
 #Install Mavlink
 echo "Step 4: Install MAVLINK"
@@ -109,10 +110,10 @@ wget https://s3-us-west-2.amazonaws.com/qgroundcontrol/latest/QGroundControl.App
 #Install mavros
 echo "Step 8: Installing mavros"
 apt-get install -y \
-    ros-melodic-rqt \
-    ros-melodic-rqt-common-plugins \
-    ros-melodic-mavros \
-    ros-melodic-mavros-extras
+    ros-noetic-rqt \
+    ros-noetic-rqt-common-plugins \
+    ros-noetic-mavros \
+    ros-noetic-mavros-extras
 
 # Clone sitl
 echo "Step 9: Cloning PX4 sitl"
@@ -124,7 +125,7 @@ cd /px4_sitl/sitl_gazebo/build/
 # Build Sitl
 echo "Step 10: Building PX4 sitl"
 CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
-cmake .. && make -j3 && make install
+cmake .. && make -j2 && make install
 
 #Set some environment variables to get PX4 to build
 export LANG=C.UTF-8

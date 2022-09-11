@@ -48,15 +48,16 @@ $  sudo -i
 $ ./install_everything
 ```
 
-This should successfully build all the dependencies needed for basic software simulation with px4. To test if everything was set up properly, navigate to the px4_sitl/PX4_Autopilot directory then start up the simulation:
+This should successfully build all the dependencies needed for basic software simulation with px4. To test if everything was set up properly, navigate to the px4_sitl/PX4_Autopilot directory then start up the simulation!
 ```
 $  cd /px4_sitl/PX4-Autopilot/
 $  make px4_sitl gazebo
 ```
-
 If everything works you should see a small quadcopter in a simulated world! Note that this will compile some necessary binaries (which only happens one time until the virtual computer is shut down) before starting PX4-Autopilot and Gazebo.
 
 You can also debug opening Gazebo without PX4 running (which is useful for testing GUI settings) by using this command:
 ```
 $ gazebo --verbose
 ```
+
+Happy Coding!

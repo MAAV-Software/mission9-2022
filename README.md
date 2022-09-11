@@ -1,4 +1,4 @@
-# MAAV Mission 9 Repo - 2021
+# MAAV Mission 9 Repo - 2022
 
 
 install git
@@ -10,19 +10,16 @@ make install_everything executable
 ## Introduction
 This README document is a work-in-progress. We will populate this more later.
 
-**Note: this branch is only up to date for WSL users, use with caution with other platforms.**
-
 ## Install and Simulator Setup Instructions
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.
 
-[Windows / Mac (intel)](docs/VBox.md)
+[Windows / Mac (Intel)](docs/VBox.md)
 
 [Mac (M1)](docs/Mac.md)
 
-[Ubuntu / Other Linux Distro](docs/Linux.md)
+[Ubuntu / Other Linux Distro (TODO)](docs/Linux.md)
 
-[Docker Additional Info](docs/Docker.md)
 
 ## Development Etiquette
 
@@ -59,7 +56,8 @@ When developing a new feature, bug fix, or set of changes, make a new branch.
 This will allow your `master` branch to stay clean and organized in terms of
 commit history and file changes. If you are added to the MAAV-Software organization,
 it will also allow you to push changes to this project and make pull requests
-without needing to fork the repository.
+without needing to fork the repository. \
+Please name your branch in the format `uniqname/branch_name` (e.g. drewskis/my_branch)
 
 This project's `master` branch is protected, and only Software Leadership can merge
 in changes from other branches or forks (more on forks later).
@@ -94,12 +92,6 @@ can view and make changes to *any* branch that is not `master`.
 
 ## Simulating the Vehicle
 
-We will be using Docker to simulate the environment that will be on the
-vehicle's computing hardware. To setup the Docker image (a "snapshot" of the
-computer at a specific time and state) for this repo, follow
-[these instructions](docs/Docker.md) or the instructions specific to your system.
-
-We will also be using Gazebo to simulate vehicle behavior. This is done within
-the Docker container to ensure dependencies are setup correctly in our code.
+We will be using Gazebo to simulate vehicle behavior. This is done within a virtual environment to ensure dependencies are setup correctly in our code.
 Gazebo is already installed for you if you follow the install instructions for
 your system.

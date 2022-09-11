@@ -45,6 +45,7 @@ $ cd /mission9-2022/scripts
 Now switch to the admin user and run the installation script by running the following two commands:
 ```
 $  sudo -i
+$ cd /mission9-2022/script
 $ ./install_everything
 ```
 

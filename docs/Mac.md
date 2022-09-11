@@ -1,71 +1,66 @@
-# Setup MAAV Software on Mac
+# Setup MAAV Software on Mac (M1)
 
-By the end of this tutorial, you should have the software repository on your system, and be able to start a virtual system (Docker container) to run and simulate the vehicle behavior.
+Okay bad news, I don't actually have an M1 mac lol so most of this is speculation and may not end up working. That being said...
+
+By the end of this tutorial, you should have the software repository on your system, and be able to start a virtual environment (through UTM) to run and simulate the vehicle behavior.
 
 ## Install Required Software
 
-You will need Docker, which is used to create images or "snapshots" of virtual systems and run them in containers. Install Docker using by following the documentation given at the following link:
+The simulation and development environment for our vehicle requires the use of a linux operating system. There a couple ways that we can do this (flashing an old computer of yours with a new operating system, "dual-booting" your computer with two seperate operating systems, and setting up a virtual machine). **This doc goes over how to set up a virtual machine using [UTM](https://mac.getutm.app/) because it is by far the least invasive for an M1 mac.**
 
-[Docker Installation Instructions](https://runnable.com/docker/install-docker-on-macos)
+Please install UTM using the link above.
 
-You can test if Docker is setup correctly by running this command in your mac terminal:
+Next, you will need to download the this linux distrobution: [Ubuntu 20.04 (Focal Fossa)](https://releases.ubuntu.com/20.04/). Make sure to dowload the "Desktop Image" and store the image in a safe place once it's installed. 
 
-```
-docker
-```
+Finally, setup the virtual environment by going through the steps in [this tutorial](https://www.youtube.com/watch?v=MVLbb1aMk24&ab_channel=MoodyCodes).
+
+<ins>Recommended Settings:</ins>
+- Virtual HD: 25+ GB 
+- RAM: 8000+ MB
+- Processors: 2+
+- Video Memory: 50+ MB
+
+Let me (Drew) know if you have any issues with the installation process and we can troubleshoot any issues together!
+
+Now you should be able to spin up your very own Ubuntu desktop!
 
 ## Clone the Software Code
-
-In your terminal, navigate to a folder you want to put the code. Run the following command to download the code from Github:
+Our team uses git version control to store copies of our code. Open up a terminal in your new Ubuntu desktop and install git onto your new virtual machine.
+```
+$ sudo apt-get install git
+```
+Then use these commands to pull all of our software code from Github onto your computer. Once complete, you should have a new folder named `mission9-2022` in your base directory (/).
 
 ```
-git clone <URL copied from Github>
+$ cd /
+$ sudo git clone https://github.com/MAAV-Software/mission9-2022.git
+```
+You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull` but must login with username/password for `push`), or [SSH](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) (more secure, uses private SSH key created on your system that matches with your public key on your Github account, can have an optional password, and is checked for any remote Git operation). We recommend SSH, but you can use whichever is easier for you.
+
+## Configure Your Ubuntu Environment
+In this section we will download all necessary dependencies for simulating and developing software for the drone.
+
+Go inside the software repo you just downloaded by typing the following after the `$`.
+```
+$ cd /mission9-2022/scripts
 ```
 
-You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull` but must get a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) for `push`), or [SSH](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) (more secure, uses private SSH key created on your system that matches with your public key on your Github account, can have an optional password, and is checked for any remote Git operation). We recommend SSH, but you can use whichever is easier for you.
-
-## Build the Docker Image
-
-For more information about using Docker, [see the Docker doc page.](./Docker.md)
-
-Inside the root folder of the software code you just cloned, run this command:
-
+Now switch to the admin user and run the installation script by running the following two commands:
 ```
-sudo docker build -f mac.Dockerfile -t maav-mission9 .
+$  sudo -i
+$ ./install_everything
 ```
 
-**Note the '.' at the end!**
-
-The Docker image should build successfully, but let us know if there's any issues or bugs you run into.
-
-## Start the Docker Container and Gazebo
-
-Start the Docker container using this command:
-
+This should successfully build all the dependencies needed for basic software simulation with px4. To test if everything was set up properly, navigate to the px4_sitl/PX4_Autopilot directory then start up the simulation!
 ```
-sudo docker run -p 6080:80 -v $PWD:/mission9-2021:rw maav-mission9
+$  cd /px4_sitl/PX4-Autopilot/
+$  make px4_sitl gazebo
 ```
-
-After you started the docker container, open a web browser and type [127.0.0.1:6080](http://127.0.0.1:6080) into the search bar and hit enter. If everything works correctly, you should see a linux desktop. This will be your way of interacting with the docker container!
-
-Once inside the Docker container, we need to install a bunch of dependencies. This step takes a while and is a hastle. Eventually this step will be done automatically when the docker container is built for the first time. For now... Run this command:
-
-```
-/scripts/commands.sh
-```
-
-After everything gets installed, test if everything installed properly by running:
-
-```
-cd /px4_sitl/PX4-Autopilot && make px4_sitl -j1 gazebo
-```
-
-Note that this will compile some necessary binaries (which only happens one time until the Docker container is shut down) before starting PX4-Autopilot and Gazebo.
+If everything works you should see a small quadcopter in a simulated world! Note that this will compile some necessary binaries (which only happens one time until the virtual computer is shut down) before starting PX4-Autopilot and Gazebo.
 
 You can also debug opening Gazebo without PX4 running (which is useful for testing GUI settings) by using this command:
-
 ```
-gazebo --verbose
+$ gazebo --verbose
 ```
 
-Happy coding!
+Happy Coding!

@@ -1,9 +1,5 @@
 # MAAV Mission 9 Repo - 2022
-
-
-install git
-make install_everything executable
-
+Welcome to the MAAV repo!
 
 
 

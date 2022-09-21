@@ -14,12 +14,17 @@ This README document is a work-in-progress. We will populate this more later.
 
 Let MAAV Software Leadership know if you run into issues during any of the setup.
 
-[Windows / Mac (Intel)](docs/VBox.md)
+- [Windows / Mac (Intel)](docs/VBox.md)
 
-[Mac (M1)](docs/Mac.md)
+- [Mac (M1)](docs/Mac.md)
 
-[Ubuntu / Other Linux Distro (TODO)](docs/Linux.md)
+- [Ubuntu / Other Linux Distro (TODO)](docs/Linux.md)
 
+## Onboarding
+
+The following is a link to the onboarding project for Fall 2022. 
+
+- [Onboarding Project](docs/Onboarding.md)
 
 ## Development Etiquette
 

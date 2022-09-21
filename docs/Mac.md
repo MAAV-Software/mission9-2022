@@ -10,7 +10,7 @@ The simulation and development environment for our vehicle requires the use of a
 
 Please install UTM using the link above.
 
-Next, you will need to download the this linux distrobution: [Ubuntu 20.04 (Focal Fossa)](https://releases.ubuntu.com/20.04/). Make sure to dowload the "Desktop Image" and store the image in a safe place once it's installed. 
+Next, you will need to download the this linux distrobution: [Ubuntu 20.04 (Focal Fossa)](https://cdimage.ubuntu.com/releases/20.04/release/). Make sure to dowload the "Desktop Image" and store the image in a safe place once it's installed. 
 
 Finally, setup the virtual environment by going through the steps in [this tutorial](https://www.youtube.com/watch?v=MVLbb1aMk24&ab_channel=MoodyCodes).
 
@@ -48,6 +48,7 @@ $ cd /mission9-2022/scripts
 Now switch to the admin user and run the installation script by running the following two commands:
 ```
 $  sudo -i
+$ cd /mission9-2022/scripts
 $ ./install_everything
 ```
 

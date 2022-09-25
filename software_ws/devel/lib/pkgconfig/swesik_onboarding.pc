@@ -1,0 +1,8 @@
+prefix=/mission9-2022/software_ws/devel
+
+Name: swesik_onboarding
+Description: Description of swesik_onboarding
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

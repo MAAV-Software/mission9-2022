@@ -43,6 +43,7 @@ This starts the mavros node and initializes communication with the PX4 flight co
 ### **In Terminal 4, run:**
 ```
 $ cd /mission9-2022/software_ws
+$ catkin_make
 $ source ./devel/setup.bash
 $ rosrun example takeoff_n_land 
 ```

@@ -34,7 +34,9 @@ This starts the gazebo simulation with an Iris drone running the PX4 flight cont
 $ roscore
 ```
 ### **In Terminal 3, run:**
+Only need to run the first command once...
 ```
+$ sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh 
 $ roslaunch mavros px4.launch fcu_url:="udp://:14540@127.0.0.1:14540"
 ```
 This starts the mavros node and initializes communication with the PX4 flight controller. It basically publishes a bunch of topics from the PX4 to ROS so that we can interact with it in our code
@@ -87,10 +89,20 @@ $ catkin_make
 - I recommend taking advantage of `rostopic list`, `rostopic show [name]`, and `rostopic echo [name]` to figure out what data you have access to!
 - If you're stuck, it's probably my fault for writing crappy documentation lol. So reach out to me!
 
+## Trajectory Following
+After completing simple waypoint following, you are ready to move on to trajectory following with ROS. At the end of this section you should be able to move the px4 drone in a more complicated pattern (i.e. in a circle, in an S pattern, etc). 
 
+The way trajectory following works is actually pretty simple. There are basically two ways to go about it:
 
+1. `The carrot following algorithm` break down your desired path into many smaller, intermediate waypoints. You'll need to do some geometry for finding what the "heading direction" should be at that particular point. 
+2. `Bézier curves` which you can learn about [here](https://en.wikipedia.org/wiki/B%C3%A9zier_curve). PX4 should have an automatic way to publish direct Bézier curves which you can learn about [here](https://docs.px4.io/v1.12/en/computer_vision/path_planning_interface.html).
 
+Additionally, you can have a pretty big impact on the flight "fluidity" by simply adjusting the range you consider close enough to the current waypoint.
 
+**Note: Successfully completing this part of the onboarding project would seriously improve the software stack so thank you for your work!!**
+
+## Simple Computer Vision
+Ask Drew, still working out some stuff.
 
 \
 \

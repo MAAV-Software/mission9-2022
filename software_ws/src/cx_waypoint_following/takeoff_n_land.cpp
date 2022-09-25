@@ -109,12 +109,16 @@ int main(int argc, char **argv)
 
     ROS_INFO("going to the first way point");
     while(ros::ok()){
+	local_pos_pub.publish(pose);
+	ros::spinOnce();
+	rate.sleep();
+	if(abs(current_pos.pose.position.x - pose.pose.position.x) < 0.1 &&
+	   abs(current_pos.pose.position.y - pose.pose.position.y) < 0.1 &&
+	   abs(current_pos.pose.position.z - FLIGHT_ALTITUDE) < 0.1){
+		break;
+	}
     }
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
+
     ROS_INFO("first way point finished!");
 
 
@@ -125,55 +129,77 @@ int main(int argc, char **argv)
 
     //send setpoints for 10 seconds
     ROS_INFO("going to second way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+    while(ros::ok()){
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+        if(abs(current_pos.pose.position.x - pose.pose.position.x) < 0.1 &&
+           abs(current_pos.pose.position.y - pose.pose.position.y) < 0.1 &&
+           abs(current_pos.pose.position.z - FLIGHT_ALTITUDE) < 0.1){
+                break;
+        }
     }
+
     ROS_INFO("second way point finished!");
 
     // go to the third waypoint
     pose.pose.position.x = 1;
     pose.pose.position.y = 1;
     pose.pose.position.z = FLIGHT_ALTITUDE;
+
     //send setpoints for 10 seconds
     ROS_INFO("going to third way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+    while(ros::ok()){
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+        if(abs(current_pos.pose.position.x - pose.pose.position.x) < 0.1 &&
+           abs(current_pos.pose.position.y - pose.pose.position.y) < 0.1 &&
+           abs(current_pos.pose.position.z - FLIGHT_ALTITUDE) < 0.1){
+                break;
+        }
     }
+
     ROS_INFO("third way point finished!");
     
     // go to the forth waypoint
     pose.pose.position.x = 1;
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
+
     //send setpoints for 10 seconds
     ROS_INFO("going to forth way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+    while(ros::ok()){
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+        if(abs(current_pos.pose.position.x - pose.pose.position.x) < 0.1 &&
+           abs(current_pos.pose.position.y - pose.pose.position.y) < 0.1 &&
+           abs(current_pos.pose.position.z - FLIGHT_ALTITUDE) < 0.1){
+                break;
+        }
     }
+
     ROS_INFO("forth way point finished!");
     
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
     ROS_INFO("going back to the first point!");
-    //send setpoints for 10 seconds
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+    //send setpoints for 10 seconds
+    while(ros::ok()){
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+        if(abs(current_pos.pose.position.x - pose.pose.position.x) < 0.1 &&
+           abs(current_pos.pose.position.y - pose.pose.position.y) < 0.1 &&
+           abs(current_pos.pose.position.z - FLIGHT_ALTITUDE) < 0.1){
+                break;
+        }
     }
 
-    ROS_INFO("tring to land");
+    ROS_INFO("trying to land");
     while (!(land_client.call(land_cmd) &&
             land_cmd.response.success)){
       //local_pos_pub.publish(pose);

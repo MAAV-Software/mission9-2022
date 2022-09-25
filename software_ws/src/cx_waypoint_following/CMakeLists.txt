@@ -203,6 +203,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(takeoff_n_land takeoff_n_land.cpp)
-target_link_libraries(takeoff_n_land ${catkin_LIBRARIES})
+add_executable(cx_takeoff_n_land cx_takeoff_n_land.cpp)
+target_link_libraries(cx_takeoff_n_land ${catkin_LIBRARIES})
 

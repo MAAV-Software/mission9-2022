@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
     ros::Subscriber drone_pos = nh.subscribe<geometry_msgs::PoseStamped>
-            ("/mavros/local_position/pose",100, state_pos);
+            ("/mavros/local_position/pose",10, state_pos);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 

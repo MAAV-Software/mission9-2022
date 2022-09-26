@@ -10,12 +10,35 @@
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <vector>
 
 #define FLIGHT_ALTITUDE 1.5f
 
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
+}
+geometry_msgs::PoseStamped curr_pos;
+void state_pos(const geometry_msgs::PoseStamped& msg){
+    curr_pos = *msg;
+}
+void move_to_waypoint(vector<int> waypoint, ros::Publisher local_pos_pub){
+  double dist = abs(waypoint[0]-curr_pos.pose.position.x);
+  dist += abs(waypoint[1]-curr_pos.pose.position.y);
+  dist += abs(waypoint[2]-curr_pos.pose.position.z);
+  geometry_msgs::PoseStamped pose;
+  pose.pose.position.x = 0;
+  pose.pose.position.y = 0;
+  pose.pose.position.z = FLIGHT_ALTITUDE;
+  while(dist >= 0.01){
+    pose.pose.position.x = waypoint[0];
+    pose.pose.position.y = waypoint[1];
+    pose.pose.position.z = waypoint[2];
+    local_pos_pub.publish(pose);
+    ros::spinOnce();
+    rate.sleep();
+    // curr_pos.x;
+  }
 }
 
 int main(int argc, char **argv)
@@ -33,7 +56,8 @@ int main(int argc, char **argv)
       ("mavros/cmd/land");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
-
+    ros::Subscriber drone_pos = nh.subscribe<geometry_msgs::PoseStamped>
+            ("/mavros/local_position/pose",100, state_pos);
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
@@ -95,74 +119,90 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
+    //fixed
+    vector<vector<int>> way_points;
+    vector<int> way_point_1 = {0,0,FLIGHT_ALTITUDE};
+    vector<int> way_point_2 = {0,1,FLIGHT_ALTITUDE};
+    vector<int> way_point_3 = {1,1,FLIGHT_ALTITUDE};
+    vector<int> way_point_4 = {1,0,FLIGHT_ALTITUDE};
+    way_points.push_back(way_point_1);
+    way_points.push_back(way_point_2);
+    way_points.push_back(way_point_3);
+    way_points.push_back(way_point_4);
+    way_points.push_back(way_point_1);
+    for(size_t = 0; i < way_points.size(); i++){
+      ROS_INFO("going to way point " + to_string(i));
+      move_to_waypoint(way_points[i],local_pos_pub);
+      ROS_INFO("way point " + to_string(i) + " finished");
+    }
     // go to the first waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // pose.pose.position.x = 0;
+    // pose.pose.position.y = 0;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
 
-    ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("first way point finished!");
+    // ROS_INFO("going to the first way point");
+    // for(int i = 0; ros::ok() && i < 10*20; ++i){
+    //   local_pos_pub.publish(pose);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
+    // ROS_INFO("first way point finished!");
 
 
-    // go to the second waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // // go to the second waypoint
+    // pose.pose.position.x = 0;
+    // pose.pose.position.y = 1;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
 
-    //send setpoints for 10 seconds
-    ROS_INFO("going to second way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // //send setpoints for 10 seconds
+    // ROS_INFO("going to second way point");
+    // for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("second way point finished!");
+    //   local_pos_pub.publish(pose);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
+    // ROS_INFO("second way point finished!");
 
-    // go to the third waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to third way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // // go to the third waypoint
+    // pose.pose.position.x = 1;
+    // pose.pose.position.y = 1;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
+    // //send setpoints for 10 seconds
+    // ROS_INFO("going to third way point");
+    // for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("third way point finished!");
+    //   local_pos_pub.publish(pose);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
+    // ROS_INFO("third way point finished!");
     
-    // go to the forth waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to forth way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // // go to the forth waypoint
+    // pose.pose.position.x = 1;
+    // pose.pose.position.y = 0;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
+    // //send setpoints for 10 seconds
+    // ROS_INFO("going to forth way point");
+    // for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("forth way point finished!");
+    //   local_pos_pub.publish(pose);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
+    // ROS_INFO("forth way point finished!");
     
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    ROS_INFO("going back to the first point!");
-    //send setpoints for 10 seconds
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // pose.pose.position.x = 0;
+    // pose.pose.position.y = 0;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
+    // ROS_INFO("going back to the first point!");
+    // //send setpoints for 10 seconds
+    // for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
+    //   local_pos_pub.publish(pose);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
 
     ROS_INFO("tring to land");
     while (!(land_client.call(land_cmd) &&

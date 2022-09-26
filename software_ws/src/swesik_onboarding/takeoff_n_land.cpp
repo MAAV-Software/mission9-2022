@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>
-      ("mavros/cmd/land");
+            ("mavros/cmd/land");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
     ros::Subscriber drone_pos = nh.subscribe<geometry_msgs::PoseStamped>

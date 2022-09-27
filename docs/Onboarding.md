@@ -25,7 +25,7 @@ To run code from this package, or any other package you create, you will need to
 
 ### **In Terminal 1, run:**
 ```
-$ cd /px4_sitl/PX4_Autopilot
+$ cd /px4_sitl/PX4-Autopilot
 $ make px4_sitl gazebo
 ```
 This starts the gazebo simulation with an Iris drone running the PX4 flight controller code. We will interact with this drone in simulation with our code. 
@@ -43,6 +43,7 @@ This starts the mavros node and initializes communication with the PX4 flight co
 ### **In Terminal 4, run:**
 ```
 $ cd /mission9-2022/software_ws
+$ catkin_make
 $ source ./devel/setup.bash
 $ rosrun example takeoff_n_land 
 ```

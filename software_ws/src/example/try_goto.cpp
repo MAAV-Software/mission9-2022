@@ -11,6 +11,10 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 
+#include <vector>
+#include <cmath>
+#include <geometry_msgs/TwistStamped.h>
+
 #define FLIGHT_ALTITUDE 1.5f
 
 mavros_msgs::State current_state;
@@ -18,7 +22,13 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
 
-// try edit
+geometry_msgs::PoseStamped current_pose;
+void current_pose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+    current_pose = *msg;
+    //ROS_INFO("current pose: [%f]", current_pose.pose.position.x);
+}
+
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "offb_node");
@@ -34,6 +44,13 @@ int main(int argc, char **argv)
       ("mavros/cmd/land");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
+
+    // subscribe to the current position ?
+    ros::Subscriber current_pos = nh.subscribe<geometry_msgs::PoseStamped>
+            ("mavros/local_position/pose", 10, current_pose_cb);
+    // publisher that just post the velocity ?
+    ros::Publisher local_vel_body = nh.advertise<geometry_msgs::TwistStamped>
+            ("mavros/setpoint_velocity/cmd_velocity",10);
 
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
@@ -96,11 +113,17 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
+
+    // set some waypoints in vector, x, y, z
+    std::vector<float> point_one = {1,1,FLIGHT_ALTITUDE};
+
+    // simple test for take off and land
     // go to the first waypoint
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
 
+    //send setpoints for 10 seconds
     ROS_INFO("going to the first way point");
     for(int i = 0; ros::ok() && i < 10*20; ++i){
       local_pos_pub.publish(pose);
@@ -109,62 +132,57 @@ int main(int argc, char **argv)
     }
     ROS_INFO("first way point finished!");
 
+    // try using vector to set the waypoint
+    float dis_x = fabs(point_one[0] - current_pose.pose.position.x);
+    float dis_y = fabs(point_one[1] - current_pose.pose.position.y);
+    float dis_z = fabs(point_one[2] - current_pose.pose.position.z);
 
-    // go to the second waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // ROS_INFO("Go to First vector way point");
+    // while (dis_x > 0.1 || dis_y > 0.1 || dis_z > 0.1) {
+    //     ROS_INFO("Dis_x: [%f]", dis_x);
+    //     pose.pose.position.x = point_one[0];
+    //     pose.pose.position.y = point_one[1];
+    //     pose.pose.position.z = point_one[2];      
+    //     local_pos_pub.publish(pose);
+    //     ros::spinOnce();
+    //     rate.sleep();
+    // }
+    // ROS_INFO("First vector way point");
 
-    //send setpoints for 10 seconds
-    ROS_INFO("going to second way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // try give velocity for 5 second
+    ROS_INFO("set velocity");
+    geometry_msgs::TwistStamped vel;
+    vel.twist.linear.x = 0.0;
+    vel.twist.linear.y = 0.0;
+    vel.twist.linear.z = 0.8;
 
-      local_pos_pub.publish(pose);
+    for(int i = 0; ros::ok() && i < 5*20; ++i){
+      local_vel_body.publish(vel);
       ros::spinOnce();
       rate.sleep();
     }
-    ROS_INFO("second way point finished!");
+    vel.twist.linear.x = 0;
+    vel.twist.linear.y = 0;
+    vel.twist.linear.z = 0;
+    local_vel_body.publish(vel);
 
-    // go to the third waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to third way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    ROS_INFO("finish velocity!");
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("third way point finished!");
-    
-    // go to the forth waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to forth way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("forth way point finished!");
-    
+    // going back
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
-    ROS_INFO("going back to the first point!");
-    //send setpoints for 10 seconds
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
 
+    //send setpoints for 10 seconds
+    ROS_INFO("going back");
+    for(int i = 0; ros::ok() && i < 10*20; ++i){
       local_pos_pub.publish(pose);
       ros::spinOnce();
       rate.sleep();
     }
+    ROS_INFO("finish going back");
 
+    // land
     ROS_INFO("tring to land");
     while (!(land_client.call(land_cmd) &&
             land_cmd.response.success)){

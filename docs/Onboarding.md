@@ -102,7 +102,9 @@ Additionally, you can have a pretty big impact on the flight "fluidity" by simpl
 **Note: Successfully completing this part of the onboarding project would seriously improve the software stack so thank you for your work!!**
 
 ## Simple Computer Vision
-Ask Drew, still working out some stuff.
+First, set up the camera used in simulation by following along with [this documentation](./SimCamera.md)
+
+Next, Ask Drew, still working out some stuff.
 
 \
 \

@@ -10,6 +10,7 @@ Please make sure that a .sdf has been generated for the drone that you are simul
 $ find / -name "*.sdf"          # all sdf files
 $ find / -name "iris.sdf"       # for iris drone specifically
 ```
+The iris file should be in /px4_sitl/PX4-Autopilot/Tools/sitl_gazebo/models/iris/iris.sdf
 
 Edit the .sdf file using the code editor of your choice (e.g. vim, nano, etc).
 
@@ -21,57 +22,70 @@ We are going to add our own plugin to the robot model! At the bottom of the file
 
 <ins>New Plugin XML:</ins>
 ```
-
+  <!--depth camera -->
+  <include>
+    <uri>model://depth_camera</uri>
+    <pose>0.15 0 0.00 0 0 0</pose>
+  </include>
+  <joint name="depth_camera_joint" type="fixed">
+    <child>depth_camera::link</child>
+    <parent>iris::base_link</parent>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <upper>0</upper>
+        <lower>0</lower>
+      </limit>
+    </axis>
+  </joint>
 ```
 
-Finally, setup the virtual environment by going through the steps in [this tutorial](https://medium.com/tech-lounge/how-to-install-ubuntu-on-mac-using-virtualbox-3a26515aa869).
-
-<ins>Recommended Settings:</ins>
-- Virtual HD: 25+ GB 
-- RAM: 8000+ MB
-- Processors: 2+
-- Video Memory: 50+ MB
-
-Now you should be able to spin up your very own Ubuntu desktop! For some mac users that are experiencing high latency and lag, I found [this page](https://mkyong.com/mac/virtualbox-running-slow-and-lag-on-macos-macbook-pro/) very helpful.
-
-
-## Clone the Software Code
-Our team uses git version control to store copies of our code. Open up a terminal in your new Ubuntu desktop and install git onto your new virtual machine.
+Once you add to and save the file you can run the simulator again and look at the new camera model that was added to the front of the drone:
 ```
-$ sudo apt-get install git
-```
-Then use these commands to pull all of our software code from Github onto your computer. Once complete, you should have a new folder named `mission9-2022` in your base directory (/).
-
-```
-$ cd /
-$ sudo git clone https://github.com/MAAV-Software/mission9-2022.git
-```
-You can either clone via HTTPS (no login required for `clone`, `fetch`, or `pull` but must login with username/password for `push`), or [SSH](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) (more secure, uses private SSH key created on your system that matches with your public key on your Github account, can have an optional password, and is checked for any remote Git operation). We recommend SSH, but you can use whichever is easier for you.
-
-## Configure Your Ubuntu Environment
-In this section we will download all necessary dependencies for simulating and developing software for the drone.
-
-Go inside the software repo you just downloaded by typing the following after the `$`.
-```
-$ cd /mission9-2022/scripts
+$ cd /px4_sitl/PX4-Autopilot
+$ make px4_sitl gazebo
 ```
 
-Now switch to the admin user and run the installation script by running the following two commands:
+
+## Visualize the camera output and link with mavros
+
+In order to view the output of the camera, we have to start the simulation in a lightly differnt way. Close out of all your current terminals follow the steps below.
+
+**NOTE:** make sure that you are root by running:
 ```
-$  sudo -i
-$ ./install_everything
+$ sudo -i
 ```
 
-This should successfully build all the dependencies needed for basic software simulation with px4. To test if everything was set up properly, navigate to the px4_sitl/PX4_Autopilot directory then start up the simulation!
-```
-$  cd /px4_sitl/PX4-Autopilot/
-$  make px4_sitl gazebo
-```
-If everything works you should see a small quadcopter in a simulated world! Note that this will compile some necessary binaries (which only happens one time until the virtual computer is shut down) before starting PX4-Autopilot and Gazebo.
+### **Terminal 1:**
+First, we will start the simulation with ROS wrappers by running the following. 
 
-You can also debug opening Gazebo without PX4 running (which is useful for testing GUI settings) by using this command:
 ```
-$ gazebo --verbose
+$ cd /px4_sitl/PX4-Autopilot
+$ DONT_RUN=1 make px4_sitl_default gazebo
+$ source /mission9-2022/software_ws/devel/setup.bash
+$ source Tools/simulation/gazebo/setup_gazebo.bash $(pwd) $(pwd)/build/px4_sitl_default
+$ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)
+$ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:$(pwd)/Tools/simulation/gazebo/sitl_gazebo
+$ roslaunch px4 posix_sitl.launch
 ```
+
+I have also included a script named [gazebo_ros_wrap.sh](../scripts/install_everything.sh) in `/mission9-2022/scripts`
+
+### **Terminal 2:**
+run the rvis node in a new terminal:
+```
+$ . /mission9-2022/software_ws/devel/setup.bash
+$ rosrun rvis rvis
+```
+
+### **Terminal 3:**
+Now make sure that you justify the camera frame with the following command
+If you have an error, this command will likely fix it.
+**NOTE** This is likely not actually correct but it's okay for the time being.
+```
+$ rosrun tf static_transform_publisher 0.0 0.0 0.0 0.0 0.0 0.0 map [my_frame] 100
+```
+
+
 
 Happy Coding!

@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     }
 
     //fixed
-    std::vector<vector<float>> way_points;
+    std::vector<std::vector<float>> way_points;
     std::vector<float> way_point_1 = {0.0f,0.0f,FLIGHT_ALTITUDE};
     std::vector<float> way_point_2 = {0.0f,1.0f,FLIGHT_ALTITUDE};
     std::vector<float> way_point_3 = {1.0f,1.0f,FLIGHT_ALTITUDE};
@@ -134,9 +134,9 @@ int main(int argc, char **argv)
     way_points.push_back(way_point_4);
     way_points.push_back(way_point_1);
     for(int i = 0; i < way_points.size(); i++){
-      ROS_INFO("going to way point " + to_string(i));
+      ROS_INFO("going to way point " + std::to_string(i));
       move_to_waypoint(way_points[i],local_pos_pub);
-      ROS_INFO("way point " + to_string(i) + " finished");
+      ROS_INFO("way point " + std::to_string(i) + " finished");
     }
     // go to the first waypoint
     // pose.pose.position.x = 0;

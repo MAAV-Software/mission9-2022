@@ -18,17 +18,17 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
 geometry_msgs::PoseStamped current_pos;
-void state_position(const geometry_msgs::PoseStamped& msg){
-    curr_pos = *msg;
+void state_position(const geometry_msgs::PoseStamped msg){
+    current_pos = msg;
 }
 struct coordinate{
     double x;
     double y;
     double z;
-}
+};
 double distance(coordinate myTarget)
 {
-    return abs(myTarget.x - current_pos.pose.position.x)+abs(myTarget.y - current_pos.pose.position.y)+abs(myTarget.z - current_pos.pose.position.z)
+    return abs(myTarget.x - current_pos.pose.position.x)+abs(myTarget.y - current_pos.pose.position.y)+abs(myTarget.z - current_pos.pose.position.z);
 }
 int main(int argc, char **argv)
 {
@@ -115,9 +115,9 @@ int main(int argc, char **argv)
     myWayPoints.push_back({0, 2, FLIGHT_ALTITUDE});
     myWayPoints.push_back({2, 2, FLIGHT_ALTITUDE});
     myWayPoints.push_back({2, 0, FLIGHT_ALTITUDE});
-    pose.pose.position.x = myWayPoints[0][0];
-    pose.pose.position.y = myWayPoints[0][1];
-    pose.pose.position.z = myWayPoints[0][2];
+    pose.pose.position.x = myWayPoints[0].x;
+    pose.pose.position.y = myWayPoints[0].y;
+    pose.pose.position.z = myWayPoints[0].z;
 
     ROS_INFO("going to the first way point");
     while(ros::ok() &&  distance(myWayPoints[0]) > .05){
@@ -129,9 +129,9 @@ int main(int argc, char **argv)
 
 
     //go to the second waypoint
-    pose.pose.position.x = myWayPoints[1][0];
-    pose.pose.position.y = myWayPoints[1][1];
-    pose.pose.position.z = myWayPoints[1][2];
+    pose.pose.position.x = myWayPoints[1].x;
+    pose.pose.position.y = myWayPoints[1].y;
+    pose.pose.position.z = myWayPoints[1].z;
 
     //send setpoints for 10 seconds
     ROS_INFO("going to second way point");
@@ -144,9 +144,9 @@ int main(int argc, char **argv)
     ROS_INFO("second way point finished!");
 
     // go to the third waypoint
-    pose.pose.position.x = myWayPoints[2][0];
-    pose.pose.position.y = myWayPoints[2][1];
-    pose.pose.position.z = myWayPoints[2][2];
+    pose.pose.position.x = myWayPoints[2].x;
+    pose.pose.position.y = myWayPoints[2].y;
+    pose.pose.position.z = myWayPoints[2].z;
     //send setpoints for 10 seconds
     ROS_INFO("going to third way point");
     while(ros::ok() && distance(myWayPoints[2]) > .05){
@@ -158,9 +158,9 @@ int main(int argc, char **argv)
     ROS_INFO("third way point finished!");
     
     // go to the forth waypoint
-    pose.pose.position.x = myWayPoints[3][0];
-    pose.pose.position.y = myWayPoints[3][1];
-    pose.pose.position.z = myWayPoints[3][2];
+    pose.pose.position.x = myWayPoints[3].x;
+    pose.pose.position.y = myWayPoints[3].y;
+    pose.pose.position.z = myWayPoints[3].z;
     //send setpoints for 10 seconds
     ROS_INFO("going to forth way point");
     while(ros::ok() && distance(myWayPoints[3]) > .05){
@@ -171,12 +171,12 @@ int main(int argc, char **argv)
     }
     ROS_INFO("forth way point finished!");
     
-    pose.pose.position.x = myWayPoints[0][0];
-    pose.pose.position.y = myWayPoints[0][1];
-    pose.pose.position.z = myWayPoints[0][2];
+    pose.pose.position.x = myWayPoints[0].x;
+    pose.pose.position.y = myWayPoints[0].y;
+    pose.pose.position.z = myWayPoints[0].z;
     ROS_INFO("going back to the first point!");
     //send setpoints for 10 seconds
-    for(int i = 0; ros::ok() && distance(myWayPoints[0]) > .05){
+    while(ros::ok() && distance(myWayPoints[0]) > .05){
 
       local_pos_pub.publish(pose);
       ros::spinOnce();

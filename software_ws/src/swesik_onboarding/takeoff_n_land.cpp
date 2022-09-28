@@ -25,7 +25,7 @@ geometry_msgs::PoseStamped curr_pos;
 void state_pos(const geometry_msgs::PoseStamped msg){
     curr_pos = msg;
 }
-void move_to_waypoint(vector<int> waypoint, ros::Publisher local_pos_pub){
+void move_to_waypoint(vector<float> waypoint, ros::Publisher local_pos_pub){
   double dist = abs(waypoint[0]-curr_pos.pose.position.x);
   dist += abs(waypoint[1]-curr_pos.pose.position.y);
   dist += abs(waypoint[2]-curr_pos.pose.position.z);
@@ -123,11 +123,11 @@ int main(int argc, char **argv)
     }
 
     //fixed
-    vector<vector<int>> way_points;
-    vector<int> way_point_1 = {0,0,FLIGHT_ALTITUDE};
-    vector<int> way_point_2 = {0,1,FLIGHT_ALTITUDE};
-    vector<int> way_point_3 = {1,1,FLIGHT_ALTITUDE};
-    vector<int> way_point_4 = {1,0,FLIGHT_ALTITUDE};
+    vector<vector<float>> way_points;
+    vector<float> way_point_1 = {0.0f,0.0f,FLIGHT_ALTITUDE};
+    vector<float> way_point_2 = {0.0f,1.0f,FLIGHT_ALTITUDE};
+    vector<float> way_point_3 = {1.0f,1.0f,FLIGHT_ALTITUDE};
+    vector<float> way_point_4 = {1.0f,0.0f,FLIGHT_ALTITUDE};
     way_points.push_back(way_point_1);
     way_points.push_back(way_point_2);
     way_points.push_back(way_point_3);

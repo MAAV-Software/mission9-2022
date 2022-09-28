@@ -11,6 +11,7 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <vector>
+#include <cstdlib>
 
 #define FLIGHT_ALTITUDE 1.5f
 

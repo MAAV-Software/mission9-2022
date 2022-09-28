@@ -14,6 +14,8 @@
 
 #define FLIGHT_ALTITUDE 1.5f
 
+using namespace std;
+
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;

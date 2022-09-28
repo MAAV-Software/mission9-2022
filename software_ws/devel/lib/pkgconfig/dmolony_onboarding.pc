@@ -1,7 +1,7 @@
 prefix=/home/dmolony/mission9-2022/software_ws/devel
 
-Name: example
-Description: Description of example
+Name: dmolony_onboarding
+Description: Description of dmolony_onboarding
 Version: 0.0.0
 Cflags: 
 Libs: -L${prefix}/lib 

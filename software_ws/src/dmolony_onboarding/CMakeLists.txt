@@ -202,3 +202,5 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+add_executable(takeoff_n_landOnBoard takeoff_n_landOnBoard.cpp)
+target_link_libraries(takeoff_n_landOnBoard ${catkin_LIBRARIES})

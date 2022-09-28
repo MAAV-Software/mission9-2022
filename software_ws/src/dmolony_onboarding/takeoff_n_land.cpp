@@ -10,19 +10,22 @@
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
-
+#include <vector>
 #define FLIGHT_ALTITUDE 1.5f
-
+using namespace std;
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
-
+struct coordinate{
+    int x;
+    int y;
+    int z;
+}
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "offb_node");
     ros::NodeHandle nh;
-
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, state_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
@@ -96,12 +99,15 @@ int main(int argc, char **argv)
     }
 
     // go to the first waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
+    vector<coordinate> myWayPoints;
+    myWayPoints.push_back({0, 3, FLIGHT_ALTITUDE});
+    myWayPoints.push_back({3, 3, FLIGHT_ALTITUDE});
+    myWayPoints.push_back({3, 0, FLIGHT_ALTITUDE});
+    myWayPoints.push_back({0, 0, FLIGHT_ALTITUDE});
     pose.pose.position.z = FLIGHT_ALTITUDE;
 
     ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    while(ros::ok() && pose.pose.position.y < 3){
       local_pos_pub.publish(pose);
       ros::spinOnce();
       rate.sleep();
@@ -110,13 +116,13 @@ int main(int argc, char **argv)
 
 
     // go to the second waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // pose.pose.position.x = 0;
+    // pose.pose.position.y = 1;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
 
     //send setpoints for 10 seconds
     ROS_INFO("going to second way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    while(ros::ok() && pose.pose.position.x < 3){
 
       local_pos_pub.publish(pose);
       ros::spinOnce();
@@ -125,12 +131,12 @@ int main(int argc, char **argv)
     ROS_INFO("second way point finished!");
 
     // go to the third waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // pose.pose.position.x = 1;
+    // pose.pose.position.y = 1;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
     //send setpoints for 10 seconds
     ROS_INFO("going to third way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    while(ros::ok() && pose.pose.position.y > 0){
 
       local_pos_pub.publish(pose);
       ros::spinOnce();
@@ -139,12 +145,12 @@ int main(int argc, char **argv)
     ROS_INFO("third way point finished!");
     
     // go to the forth waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // pose.pose.position.x = 1;
+    // pose.pose.position.y = 0;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
     //send setpoints for 10 seconds
     ROS_INFO("going to forth way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    while(ros::ok() && pose.pose.position.x > 0){
 
       local_pos_pub.publish(pose);
       ros::spinOnce();
@@ -152,9 +158,9 @@ int main(int argc, char **argv)
     }
     ROS_INFO("forth way point finished!");
     
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    // pose.pose.position.x = 0;
+    // pose.pose.position.y = 0;
+    // pose.pose.position.z = FLIGHT_ALTITUDE;
     ROS_INFO("going back to the first point!");
     //send setpoints for 10 seconds
     for(int i = 0; ros::ok() && i < 10*20; ++i){
@@ -174,3 +180,4 @@ int main(int argc, char **argv)
     }
     return 0;
 }
+//substribe to local position or smth i think

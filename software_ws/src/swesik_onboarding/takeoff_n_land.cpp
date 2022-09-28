@@ -19,7 +19,7 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
 }
 geometry_msgs::PoseStamped curr_pos;
-void state_pos(const geometry_msgs::PoseStamped& msg){
+void state_pos(const geometry_msgs::PoseStamped msg){
     curr_pos = msg;
 }
 void move_to_waypoint(vector<int> waypoint, ros::Publisher local_pos_pub){

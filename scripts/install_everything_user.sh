@@ -116,7 +116,7 @@ echo "Step 10: Building PX4 sitl"
 mkdir ~/px4_sitl/sitl_gazebo/build
 cd ~/px4_sitl/sitl_gazebo/build/
 CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/bin/gazebo
-cmake .. && make -j2 -l2 && make install
+cmake .. && make -j2 -l2 && sudo make install
 
 #Set some environment variables to get PX4 to build
 export LANG=C.UTF-8

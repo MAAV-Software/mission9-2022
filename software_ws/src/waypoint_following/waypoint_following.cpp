@@ -140,6 +140,33 @@ int main(int argc, char **argv)
       ROS_INFO(s.c_str());
     }
 
+    std::vector<std::vector<float>> loop{
+      {0, 0, 1},
+      {0, 4, 2},
+      {5, 7, 3},
+      {3, 9, 4},
+      {-1, -9, 5},
+      {-4, 9, 4},
+      {5, -3, 3},
+      {0, 0, 2},
+      {0, 0, 1}
+    };
+
+    ROS_INFO("starting loop");
+    for (int i = 0; i < loop.size(); i++) {
+      pose.pose.position.x = loop[i][0];
+      pose.pose.position.y = loop[i][1];
+      pose.pose.position.z = loop[i][2];
+
+      std::string wp = std::to_string(i + 1);
+      std::string s = "going to loop waypoint " + wp;
+      ROS_INFO(s.c_str());
+      go_to_waypoint(rate, local_pos_pub, pose);
+      s = "reached loop waypoint " + wp;
+      ROS_INFO(s.c_str());
+    }
+    ROS_INFO("finished loop");
+
     ROS_INFO("trying to land");
     while (!(land_client.call(land_cmd) &&
             land_cmd.response.success)){

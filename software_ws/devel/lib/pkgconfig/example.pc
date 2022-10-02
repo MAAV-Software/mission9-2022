@@ -1,4 +1,4 @@
-prefix=/mission9-2022/software_ws/devel
+prefix=/home/atom/mission9-2022/software_ws/devel
 
 Name: example
 Description: Description of example

@@ -27,6 +27,7 @@ void state_pos(const geometry_msgs::PoseStamped msg){
 }
 void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub){
   double dist = abs(waypoint[0]-curr_pos.pose.position.x);
+  ros::Rate rate(20.0);
   dist += abs(waypoint[1]-curr_pos.pose.position.y);
   dist += abs(waypoint[2]-curr_pos.pose.position.z);
   geometry_msgs::PoseStamped pose;

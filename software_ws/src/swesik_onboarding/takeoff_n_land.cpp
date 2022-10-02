@@ -34,10 +34,10 @@ void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub,
   pose.pose.position.x = 0;
   pose.pose.position.y = 0;
   pose.pose.position.z = FLIGHT_ALTITUDE;
-  while(dist >= 0.01){
+  while(dist >= 0.1){
     // std::string temp = "dist = " + to_string(dist);
     // ROS_INFO(temp.c_str());
-    std::cout << dist << std::endl;
+    // std::cout << dist << std::endl;
     dist = 0;
     dist += abs(waypoint[0]-curr_pos.pose.position.x);
     dist += abs(waypoint[1]-curr_pos.pose.position.y);

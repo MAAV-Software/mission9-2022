@@ -27,11 +27,15 @@ void state_pos(const geometry_msgs::PoseStamped msg){
 }
 void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub,ros::Rate rate){
   double dist = 0;
+  dist += abs(waypoint[0]-curr_pos.pose.position.x);
+  dist += abs(waypoint[1]-curr_pos.pose.position.y);
+  dist += abs(waypoint[2]-curr_pos.pose.position.z);
   geometry_msgs::PoseStamped pose;
   pose.pose.position.x = 0;
   pose.pose.position.y = 0;
   pose.pose.position.z = FLIGHT_ALTITUDE;
   while(dist >= 0.01){
+    dist = 0;
     dist += abs(waypoint[0]-curr_pos.pose.position.x);
     dist += abs(waypoint[1]-curr_pos.pose.position.y);
     dist += abs(waypoint[2]-curr_pos.pose.position.z);
@@ -41,7 +45,6 @@ void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub,
     local_pos_pub.publish(pose);
     ros::spinOnce();
     rate.sleep();
-    dist = 0;
     // curr_pos.x;
   }
 }

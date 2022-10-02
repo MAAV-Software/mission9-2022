@@ -114,7 +114,7 @@ Some cool programs you can write:
 - Try making a filter to segment an obstacle using openCV
 - If you get the above to work, you should be able to make a simple closed loop controller to localize with an obstacle
 
-[OpenCV Tutorials](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html), (PID Controllers)[https://www.omega.co.uk/prodinfo/pid-controllers.html]
+[OpenCV Tutorials](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html), [PID Controllers](https://www.omega.co.uk/prodinfo/pid-controllers.html)
 
 Happy coding!
 \

@@ -47,10 +47,9 @@ $ cd /mission9-2022/scripts
 
 Now switch to the admin user and run the installation script by running the following two commands:
 ```
-$  sudo -i
 $ cd /mission9-2022/scripts
-$ chmod +x install_everything.sh
-$ ./install_everything
+$ chmod +x install_everything_user.sh
+$ ./install_everything_user.sh
 ```
 
 This should successfully build all the dependencies needed for basic software simulation with px4. To test if everything was set up properly, navigate to the px4_sitl/PX4_Autopilot directory then start up the simulation!

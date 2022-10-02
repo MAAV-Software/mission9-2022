@@ -105,8 +105,18 @@ Additionally, you can have a pretty big impact on the flight "fluidity" by simpl
 ## Simple Computer Vision
 First, set up the camera used in simulation by following along with [this documentation](./SimCamera.md)
 
-Next, Ask Drew, still working out some stuff.
+Next, once your simulation environment is all set up, you can add objects (cylinders, cubes, and other shapes) to the gazebo world using the buttons at the top of the screen.
 
+Now experiment with the topics that are being published! 
+
+Some cool programs you can write:
+- Print out distance to the closest obstacle
+- Try making a filter to segment an obstacle using openCV
+- If you get the above to work, you should be able to make a simple closed loop controller to localize with an obstacle
+
+[OpenCV Tutorials](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html), (PID Controllers)[https://www.omega.co.uk/prodinfo/pid-controllers.html]
+
+Happy coding!
 \
 \
 \

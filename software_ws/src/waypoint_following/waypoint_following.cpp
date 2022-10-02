@@ -30,7 +30,7 @@ bool within_range(geometry_msgs::PoseStamped &current, geometry_msgs::PoseStampe
 }
 
 void go_to_waypoint(ros::Rate &rate, ros::Publisher &pos_pub, geometry_msgs::PoseStamped &pose){
-    while (!within_range(current_pos, pose, 0.1f)) {
+    while (ros::ok() && !within_range(current_pos, pose, 0.1f)) {
         pos_pub.publish(pose);
         ros::spinOnce();
         rate.sleep();

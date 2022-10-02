@@ -25,22 +25,23 @@ geometry_msgs::PoseStamped curr_pos;
 void state_pos(const geometry_msgs::PoseStamped msg){
     curr_pos = msg;
 }
-void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub){
-  double dist = abs(waypoint[0]-curr_pos.pose.position.x);
-  ros::Rate rate(20.0);
-  dist += abs(waypoint[1]-curr_pos.pose.position.y);
-  dist += abs(waypoint[2]-curr_pos.pose.position.z);
+void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub,ros::Rate rate){
+  double dist = 0;
   geometry_msgs::PoseStamped pose;
   pose.pose.position.x = 0;
   pose.pose.position.y = 0;
   pose.pose.position.z = FLIGHT_ALTITUDE;
   while(dist >= 0.01){
+    dist += abs(waypoint[0]-curr_pos.pose.position.x);
+    dist += abs(waypoint[1]-curr_pos.pose.position.y);
+    dist += abs(waypoint[2]-curr_pos.pose.position.z);
     pose.pose.position.x = waypoint[0];
     pose.pose.position.y = waypoint[1];
     pose.pose.position.z = waypoint[2];
     local_pos_pub.publish(pose);
     ros::spinOnce();
     rate.sleep();
+    dist = 0;
     // curr_pos.x;
   }
 }
@@ -137,7 +138,7 @@ int main(int argc, char **argv)
     for(int i = 0; i < way_points.size(); i++){
       std::string str = "going to way point " + std::to_string(i);
       ROS_INFO(str.c_str());
-      move_to_waypoint(way_points[i],local_pos_pub);
+      move_to_waypoint(way_points[i],local_pos_pub, rate);
       str = "way point " + std::to_string(i) + " finished";
       ROS_INFO(str.c_str());
     }

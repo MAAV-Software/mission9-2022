@@ -75,7 +75,7 @@ I have also included a script named [gazebo_ros_wrap.sh](../scripts/install_ever
 run the rvis node in a new terminal:
 ```
 $ . /mission9-2022/software_ws/devel/setup.bash
-$ rosrun rvis rvis
+$ rosrun rviz rviz
 ```
 
 ### **Terminal 3:**

@@ -127,8 +127,6 @@ int main(int argc, char **argv)
       {0, 0}
     };
 
-    geometry_msgs::PoseStamped pose;
-
     for (int i = 0; i < coords.size(); i++) {
       pose.pose.position.x = coords[i][0];
       pose.pose.position.y = coords[i][1];

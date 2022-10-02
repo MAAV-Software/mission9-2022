@@ -37,6 +37,7 @@ void move_to_waypoint(std::vector<float> waypoint, ros::Publisher local_pos_pub,
   while(dist >= 0.01){
     // std::string temp = "dist = " + to_string(dist);
     // ROS_INFO(temp.c_str());
+    std::cout << dist << endl;
     dist = 0;
     dist += abs(waypoint[0]-curr_pos.pose.position.x);
     dist += abs(waypoint[1]-curr_pos.pose.position.y);

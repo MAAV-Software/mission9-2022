@@ -37,33 +37,6 @@ void go_to_waypoint(ros::Rate &rate, ros::Publisher &pos_pub, geometry_msgs::Pos
     }
 }
 
-// bool within_orientation(geometry_msgs::PoseStamped &current, geometry_msgs::PoseStamped &target, float range){
-//     return (fabs(current.pose.orientation.x - target.pose.orientation.x) < range) && (fabs(current.pose.orientation.y - target.pose.orientation.y) < range) && (fabs(current.pose.orientation.z - target.pose.orientation.z) < range) && (fabs(current.pose.orientation.w - target.pose.orientation.w) < range);
-// }
-
-// void flip(ros::Rate &rate, ros::Publisher &pos_pub){
-//     geometry_msgs::PoseStamped init_pose(current_pos);
-//     geometry_msgs::PoseStamped pose(init_pose);
-//     pose.pose.orientation.x = 3.14;
-//     pose.pose.orientation.y = 3.14;
-//     pose.pose.orientation.z = 3.14;
-//     pose.pose.orientation.w = 3.14;
-//     int iterations = 0;
-//     int max_iterations = 50;
-//     while (iterations < max_iterations || !within_range(current_pos, init_pose, 0.1f) || !within_orientation(current_pos, init_pose, 0.1f)) {
-//         if (iterations < max_iterations) {
-//           pos_pub.publish(pose);
-//           ros::spinOnce();
-//           rate.sleep();
-//           iterations++;
-//         } else {
-//           pos_pub.publish(init_pose);
-//           ros::spinOnce();
-//           rate.sleep();
-//         }
-//     }
-// }
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "offb_node");
@@ -89,7 +62,7 @@ int main(int argc, char **argv)
     while(ros::ok() && current_state.connected){
         ros::spinOnce();
         rate.sleep();
-        ROS_INFO("connecting to FCT...");
+        ROS_INFO("connecting to FCT");
     }
 
     geometry_msgs::PoseStamped pose;
@@ -125,7 +98,7 @@ int main(int argc, char **argv)
           ROS_INFO(current_state.mode.c_str());
             if( set_mode_client.call(offb_set_mode) &&
                 offb_set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");
+                ROS_INFO("offboard enabled");
             }
             last_request = ros::Time::now();
         } else {
@@ -133,7 +106,7 @@ int main(int argc, char **argv)
                 (ros::Time::now() - last_request > ros::Duration(5.0))){
                 if( arming_client.call(arm_cmd) &&
                     arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
+                    ROS_INFO("vehicle armed");
                 }
                 last_request = ros::Time::now();
             }
@@ -154,17 +127,17 @@ int main(int argc, char **argv)
       {0, 0}
     };
 
-    std::vector<geometry_msgs::PoseStamped> waypoints(coords.size());
+    geometry_msgs::PoseStamped pose;
 
     for (int i = 0; i < coords.size(); i++) {
-      waypoints[i].pose.position.x = coords[i][0];
-      waypoints[i].pose.position.y = coords[i][1];
-      waypoints[i].pose.position.z = FLIGHT_ALTITUDE;
+      pose.pose.position.x = coords[i][0];
+      pose.pose.position.y = coords[i][1];
+      pose.pose.position.z = FLIGHT_ALTITUDE;
 
       std::string wp = std::to_string(i + 1);
       std::string s = "going to waypoint " + wp;
       ROS_INFO(s.c_str());
-      go_to_waypoint(rate, local_pos_pub, waypoints[i]);
+      go_to_waypoint(rate, local_pos_pub, pose);
       s = "reached waypoint " + wp;
       ROS_INFO(s.c_str());
     }

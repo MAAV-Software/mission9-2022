@@ -135,9 +135,11 @@ int main(int argc, char **argv)
     way_points.push_back(way_point_4);
     way_points.push_back(way_point_1);
     for(int i = 0; i < way_points.size(); i++){
-    //   ROS_INFO("going to way point " + std::to_string(i));
+      std::string str = "going to way point " + std::to_string(i);
+      ROS_INFO(str.c_str());
       move_to_waypoint(way_points[i],local_pos_pub);
-    //   ROS_INFO("way point " + std::to_string(i) + " finished");
+      str = "way point " + std::to_string(i) + " finished";
+      ROS_INFO(str.c_str());
     }
     // go to the first waypoint
     // pose.pose.position.x = 0;

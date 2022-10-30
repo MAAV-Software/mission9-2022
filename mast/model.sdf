@@ -2,7 +2,7 @@
   <model name='mast'>
     <link name='mast'>
       <inertial>
-        <pose>0.64916 -2.1253 1.9287 0 -0 0</pose>
+        <pose>0 0 0 0 -0 0</pose>
         <mass>24.525</mass>
         <inertia>
           <ixx>13.322</ixx>

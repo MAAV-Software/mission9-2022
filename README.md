@@ -20,6 +20,8 @@ Let MAAV Software Leadership know if you run into issues during any of the setup
 
 - [Ubuntu / Other Linux Distro (TODO)](docs/Linux.md)
 
+Additionally, we have simulation instructions for setting up a [simulation depth camera](docs/SimCamera.md) and setting up our [mast model](docs/mast.md)
+
 ## Onboarding
 
 The following is a link to the onboarding project for Fall 2022. 

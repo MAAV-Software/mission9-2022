@@ -1,0 +1,36 @@
+<sdf version='1.7'> 
+  <model name='mast'>
+    <link name='mast'>
+      <inertial>
+        <pose>0 0 0 0 -0 0</pose>
+        <mass>24.525</mass>
+        <inertia>
+          <ixx>13.322</ixx>
+          <ixy>1.9287e-15</ixy>
+          <ixz>6.1623e-16</ixz>
+          <iyy>14.301</iyy>
+          <iyz>0.028078</iyz>
+          <izz>1.2555</izz>
+        </inertia>
+      </inertial>
+      <collision name='mast_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://mast/meshes/mast_colored.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='mast_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://mast/meshes/mast_colored.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/dermotmolony/Library/CloudStorage/OneDrive-Personal/Desktop/ComputerVision/l083'
+make: Leaving directory `/Users/dermotmolony/Library/CloudStorage/OneDrive-Personal/Desktop/ComputerVision/l083'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+

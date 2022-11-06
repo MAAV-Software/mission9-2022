@@ -9,6 +9,9 @@ project(example)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   mavros
+  cv_bridge
+  image_transport
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,6 +108,8 @@ catkin_package(
 #  LIBRARIES example
 #  CATKIN_DEPENDS mavros
 #  DEPENDS system_lib
+  CATKIN_DEPENDS cv_bridge image_transport std_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -116,6 +121,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -205,3 +211,6 @@ include_directories(
 
 add_executable(takeoff_n_land takeoff_n_land.cpp)
 target_link_libraries(takeoff_n_land ${catkin_LIBRARIES})
+
+add_executable(canny_edge_sol canny_edge_sol.cpp)
+target_link_libraries(canny_edge_sol ${catkin_LIBRARIES} ${OpenCV_Include_DIRS})

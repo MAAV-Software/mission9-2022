@@ -15,7 +15,7 @@ The iris file should be in /px4_sitl/PX4-Autopilot/Tools/sitl_gazebo/models/iris
 Edit the .sdf file using the code editor of your choice (e.g. vim, nano, etc).
 
 ```
-$ vim iris.sdf
+$ vim /px4_sitl/PX4-Autopilot/Tools/sitl_gazebo/models/iris/iris.sdf
 ```
 
 We are going to add our own plugin to the robot model! At the bottom of the file, add the following code between the last `</plugin>` tag and the `</model>` tag.
@@ -39,6 +39,14 @@ We are going to add our own plugin to the robot model! At the bottom of the file
     </axis>
   </joint>
 ```
+
+Finally, you want to update the width and height of the output image of this simulation camera (currently it's mad small...). To do this, edit the camera sdf in the file /px4_sitl/PX4-Autopilot/Tools/sitl_gazebo/models/depth_camera/depth_camera.sdf
+
+```
+$ vim /px4_sitl/PX4-Autopilot/Tools/sitl_gazebo/models/depth_camera/depth_camera.sdf
+```
+
+In this file, modify the `width` and `height` parameters to be 640 and 480 respectively.
 
 Once you add to and save the file you can run the simulator again and look at the new camera model that was added to the front of the drone:
 ```

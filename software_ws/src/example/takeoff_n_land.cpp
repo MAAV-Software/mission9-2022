@@ -101,7 +101,7 @@ int main(int argc, char **argv)
     pose.pose.position.z = FLIGHT_ALTITUDE;
 
     ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    for(int i = 0; ros::ok() && true; ++i){
       local_pos_pub.publish(pose);
       ros::spinOnce();
       rate.sleep();

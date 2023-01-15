@@ -12,6 +12,16 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   image_transport
   std_msgs
+#  visp
+)
+
+find_package(VISP REQUIRED
+  visp_core
+  visp_mbt 
+  visp_io 
+  visp_gui 
+  visp_sensor
+  visp_vs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -122,6 +132,7 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${VISP_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -210,7 +221,7 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(takeoff_n_land takeoff_n_land.cpp)
-target_link_libraries(takeoff_n_land ${catkin_LIBRARIES})
+target_link_libraries(takeoff_n_land ${catkin_LIBRARIES} ${VISP_LIBRARIES} ${OpenCV_Include_DIRS})
 
 add_executable(canny_edge_sol canny_edge_sol.cpp)
 target_link_libraries(canny_edge_sol ${catkin_LIBRARIES} ${OpenCV_Include_DIRS})

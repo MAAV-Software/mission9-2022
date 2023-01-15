@@ -6,10 +6,58 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <mavros_msgs/PositionTarget.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv4/opencv2/imgproc/imgproc.hpp>
+#include <opencv4/opencv2/highgui/highgui.hpp>
+#include <tuple>
+#include <cstdlib>
+#include <math.h>
+#include <string>
+#include <cassert>
+#include "ImageConverter.h"
+#include <algorithm> 
+
+#include <visp3/core/vpImage.h>
+
+//Visp Stuff
+#include <visp3/core/vpImageConvert.h>
+#include <visp3/core/vpMomentAreaNormalized.h>
+#include <visp3/core/vpMomentBasic.h>
+#include <visp3/core/vpMomentCentered.h>
+#include <visp3/core/vpMomentDatabase.h>
+#include <visp3/core/vpMomentGravityCenter.h>
+#include <visp3/core/vpMomentGravityCenterNormalized.h>
+#include <visp3/core/vpMomentObject.h>
+#include <visp3/core/vpPixelMeterConversion.h>
+#include <visp3/core/vpPoint.h>
+#include <visp3/core/vpTime.h>
+#include <visp3/core/vpXmlParserCamera.h>
+
+//Other Visp Stuff
+#include <visp3/detection/vpDetectorAprilTag.h>
+#include <visp3/gui/vpDisplayGDI.h>
+#include <visp3/gui/vpDisplayX.h>
+#include <visp3/gui/vpPlot.h>
+#include <visp3/visual_features/vpFeatureBuilder.h>
+#include <visp3/visual_features/vpFeatureMomentAreaNormalized.h>
+#include <visp3/visual_features/vpFeatureMomentGravityCenterNormalized.h>
+#include <visp3/visual_features/vpFeatureVanishingPoint.h>
+//#include <visp3/vs/vpServo.h>
+//#include <visp3/vs/vpServoDisplay.h>
+#include <visp/vpServo.h>
+
+
+using namespace cv;
+using namespace std;
+
+
 
 #define FLIGHT_ALTITUDE 1.5f
 
@@ -25,8 +73,8 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
             ("mavros/state", 10, state_cb);
-    ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("mavros/setpoint_position/local", 10);
+    ros::Publisher local_pos_pub = nh.advertise<mavros_msgs::PositionTarget>
+            ("mavros/setpoint_raw/local", 10);
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>
@@ -37,6 +85,45 @@ int main(int argc, char **argv)
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
+    //MARK - Set up Visual Servoing
+    vpServo task; // Visual servoing task
+  
+    // double lambda = 0.5;
+    vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
+    task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
+    task.setInteractionMatrixType(vpServo::CURRENT);
+    task.setLambda(lambda);
+
+    vpRxyzVector c1_rxyz_c2(0, 0, 0);
+    vpRotationMatrix c1Rc2(c1_rxyz_c2);
+    vpHomogeneousMatrix c1Mc2(vpTranslationVector(), c1Rc2); //Homo matrix from c1 to c2
+
+    vpRotationMatrix c1Re{0, 1, 0, 0, 0, 1, 1, 0, 0};
+    vpTranslationVector c1te(0, 0, 0); // TODO: Add translation vector 
+    vpHomogeneousMatrix c1Me(c1te, c1Re);
+
+    vpHomogeneousMatrix c2Me = c1Mc2.inverse() * c1Me;
+    vpVelocityTwistMatrix cVe(c2Me);
+    
+    task.set_cVe(cVe); // TODO- See if this is actually needed
+    
+
+    vpMatrix eJe(6, 4, 0);
+
+    eJe[0][0] = 1;
+    eJe[1][1] = 1;
+    eJe[2][2] = 1;
+    eJe[5][3] = 1;
+
+    //Desired distance to the target
+    double Z_d = 1.;
+    
+
+    
+
+
+    //END - Ended setting up visual servoing
+
     // wait for FCU connection
     while(ros::ok() && current_state.connected){
         ros::spinOnce();
@@ -44,14 +131,16 @@ int main(int argc, char **argv)
         ROS_INFO("connecting to FCT...");
     }
 
-    geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    mavros_msgs::PositionTarget target;
+    target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_VX | target.IGNORE_VY | target.IGNORE_VZ | target.IGNORE_YAW_RATE;
+
+    target.position.x = 0;
+    target.position.y = 0;
+    target.position.z = FLIGHT_ALTITUDE;
 
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
-        local_pos_pub.publish(pose);
+        local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();
     }
@@ -90,87 +179,86 @@ int main(int argc, char **argv)
                 last_request = ros::Time::now();
             }
         }
-        local_pos_pub.publish(pose);
+        local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();
     }
 
+
+    //Start the image stuff
+    ImageConverter ic;
+
     // go to the first waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    target.position.x = 0;
+    target.position.y = 0;
+    target.position.z = FLIGHT_ALTITUDE;
 
     ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && true; ++i){
-      local_pos_pub.publish(pose);
+    for(int i = 0; ros::ok() && true/*i < 200*/; ++i){
+      local_pos_pub.publish(target);
       ros::spinOnce();
       rate.sleep();
+
+
+
     }
     ROS_INFO("first way point finished!");
 
 
-    // go to the second waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
+    //mavros_msgs::PositionTarget target;
+    target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
 
-    //send setpoints for 10 seconds
-    ROS_INFO("going to second way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("second way point finished!");
-
-    // go to the third waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 1;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to third way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
-    ROS_INFO("third way point finished!");
     
-    // go to the forth waypoint
-    pose.pose.position.x = 1;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    //send setpoints for 10 seconds
-    ROS_INFO("going to forth way point");
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+    while (true){
+        cout << "X err --> "<< ic.get_x_offset() << "| Y err --> " << ic.get_y_offset() << endl;
+        int x_err = ic.get_x_offset();
+        int y_err = ic.get_y_offset();
+
+        double K_P = 0.01;
+
+        target.velocity.x = 0;//
+        // target.velocity.y = -x_err * K_P; 
+        x_err < 0 ? target.velocity.y = max(-x_err * K_P, -0.1) : target.velocity.y = min(-x_err * K_P, 0.1);
+        // target.velocity.z = -1*y_err * K_P;
+        y_err < 0 ? target.velocity.z = max(-y_err * K_P, -0.1) : target.velocity.z = min(-y_err * K_P, 0.1);
+        target.coordinate_frame = 1;
+        cout << "X velocity: " << x_err * K_P << endl;
+
+        local_pos_pub.publish(target);
+        ros::spinOnce();
+        rate.sleep();
     }
-    ROS_INFO("forth way point finished!");
     
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-    ROS_INFO("going back to the first point!");
-    //send setpoints for 10 seconds
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
+    // while (true){
+    //     target.velocity.x = 0;
+    //     target.velocity.y = 1;
+    //     target.velocity.z = 0;
+    //     target.coordinate_frame = 1;
 
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
-    }
+    //     ROS_INFO("going to the first way point");
+    //     for(int i = 0; ros::ok() && i < 200; ++i){
+    //     local_pos_pub.publish(target);
+    //     ros::spinOnce();
+    //     rate.sleep();
+    //     }
+    //     ROS_INFO(" way point finished!");
 
-    ROS_INFO("tring to land");
-    while (!(land_client.call(land_cmd) &&
-            land_cmd.response.success)){
-      //local_pos_pub.publish(pose);
-      ROS_INFO("tring to land");
-      ros::spinOnce();
-      rate.sleep();
-    }
+    //     target.velocity.x = 0;
+    //     target.velocity.y = -1;
+    //     target.velocity.z = 0;
+    //     target.coordinate_frame = 1;
+
+    //     ROS_INFO("going to the first way point");
+    //     for(int i = 0; ros::ok() && i < 200; ++i){
+    //     local_pos_pub.publish(target);
+    //     ros::spinOnce();
+    //     rate.sleep();
+    //     }
+    //     ROS_INFO("first way point finished!");
+    // }
+    
+
     return 0;
 }

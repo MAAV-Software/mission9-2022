@@ -12,6 +12,7 @@
 #include <math.h>
 #include <string>
 #include <cassert>
+#include <exception>
 using namespace cv;
 using namespace std;
 
@@ -25,7 +26,7 @@ class ImageConverter
   image_transport::Publisher image_pub_;
 
   cv::Mat depth_mask;
-  bool is_depth_mask = false;
+  bool has_depth_mask = false;
   int x_offset = 0;
   int y_offset = 0;
 public:
@@ -54,6 +55,8 @@ public:
   {
     return y_offset;
   }
+
+
   void depthImageCb(const sensor_msgs::ImageConstPtr& msg){
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -68,20 +71,228 @@ public:
 
     double MAX_DISTANCE_THRESHOLD = 5.0; // in meters
 
-
+    //Set the depth mask
     cv::Mat image = cv_ptr->image;
 
     
     inRange(image, 0, MAX_DISTANCE_THRESHOLD, this->depth_mask);
-    // cv::imshow("Depth Map", this->depth_mask);
 
-    is_depth_mask = true;
+    has_depth_mask = true;
 
   }
 
+  //Returns a depth thresholded image if there is a depth mask, 
+  //otherwise it throws a std::runtime_error that can be caught later
+  cv::Mat PerformDepthThresholding(cv::Mat& image, bool verbose){
+    if (has_depth_mask){
+      Mat depth_result = Mat::zeros(image.size(), image.type());
+      image.copyTo(depth_result, this->depth_mask);
+
+      if (verbose){
+        cv::imshow("Depth thresholded image", depth_result);
+      }
+      
+      return depth_result;
+    }else{
+      throw std::runtime_error("Need to wait for depth mask");
+    }
+  }
+
+  // Returns the HSV threshold image 
+  cv::Mat PerformHSVThresholding(cv::Mat& image, bool verbose) { 
+    Mat hsv;
+    cvtColor(image, hsv, COLOR_BGR2HSV);
+    
+    Mat mask;
+    inRange(hsv, Scalar(90,50,70), Scalar(128,255,255), mask);
+    
+    Mat result;
+    image.copyTo(result, mask);
+
+    return result;
+  }
+
+  //Performs contour matching to get the portion of the image
+  //RETURNS the resized image, AND the bottomost, topmost, leftmost, and rightmost positions in the resized image
+  void GetResizedImagePostion(cv::Mat& orig_image, int& bottommost, int& topmost, int& leftmost, int& rightmost){
+    //set the initial vals for parameters
+    bottommost = 0; 
+    topmost = orig_image.cols;
+    leftmost = orig_image.rows;
+    rightmost = 0;
+    
+
+    //Convert the image to grayscale
+    Mat gray;
+    cv::cvtColor(orig_image, gray, CV_BGR2GRAY);
+
+    //Find the contours in the gray image
+    vector<vector<cv::Point> > contours;
+    vector<cv::Vec4i> hierarchy;
+    Canny(gray, gray, 255/3, 255);
+    findContours(gray, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE );
+
+    //Get a bounding box of all the big contours
+    if(contours.size() > 0){
+      for(int i = 0; i < contours.size(); i ++){
+        int area = contourArea(contours[i]);
+        //std::cout << "Area: " << area << std::endl;
+        if (area < 1000){
+          return;
+        }
+        for(int k = 0; k < contours[0].size(); k++){
+          if(contours[i][k].x > 0 && contours[i][k].y > 0 && contours[i][k].x < 512 && contours[i][k].y < 512){
+            if(contours[i][k].x < leftmost){
+              leftmost = contours[i][k].x;
+            }
+            if(contours[i][k].x > rightmost){
+              rightmost = contours[i][k].x;
+            }
+            if(contours[i][k].y > bottommost){
+              bottommost = contours[i][k].y;
+            }
+            if(contours[i][k].y < topmost){
+              topmost = contours[i][k].y;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  //Crops image around the four points
+  void Cropimage(cv::Mat& orig_image, cv::Mat& hsv_mask, int& bottommost, int& topmost, int& leftmost, int& rightmost) { 
+      hsv_mask = hsv_mask(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
+      cv::resize(hsv_mask, hsv_mask, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
+      orig_image = orig_image(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
+      cv::resize(orig_image, orig_image, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
+  }
+  
+  //Provides padding around all sides of the "cropped" image, within frame bounds
+  void PadCroppedImage(cv::Mat& image, int padding, int& bottommost, int& topmost, int& leftmost, int& rightmost) {
+    leftmost = std::max(0, leftmost - padding);
+    topmost = std::max(0, topmost - padding);
+    rightmost = std::min(image.cols, rightmost + padding);
+    bottommost = std::min(image.rows, bottommost + padding);
+  }
+
+  //Perform flood fill
+  cv::Mat FloodFill(cv::Mat& mask){
+    cv::Mat im_floodfill = mask.clone();
+    floodFill(im_floodfill, cv::Point(0, 0), Scalar(255));
+
+    Mat im_floodfill_inv;
+    bitwise_not(im_floodfill, im_floodfill_inv);
+
+    Mat im_out = (mask | im_floodfill_inv);
+    return im_out;
+  }  
+
+  //Gets corners using Hough Lines in order: TL TR BL BR
+  std::vector<cv::Point> GetCorners(cv::Mat& edges){
+    vector<Vec2f *> myFinalLines;
+    myFinalLines = FindBoundingLines(edges);
+    if (myFinalLines[0] == nullptr || myFinalLines[1] == nullptr || myFinalLines[2] == nullptr || myFinalLines[3] == nullptr){
+          // // cv::imshow("source", edges);
+          // cv::waitKey(3);
+          // sensor_msgs::ImagePtr msg_out = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
+          throw std::runtime_error("Couldn't establish good hough lines... Nullptr for some lines");
+    }
+
+	  Vec2f left = *myFinalLines[0];
+    Vec2f top = *myFinalLines[1];
+    Vec2f right = *myFinalLines[2];
+    Vec2f bottom = *myFinalLines[3];
+    
+    delete myFinalLines[0];
+    delete myFinalLines[1];
+    delete myFinalLines[2];
+    delete myFinalLines[3];
+
+    // // Display lines for debugging purposes
+    // for(int i = 0; i < myFinalLines.size(); i++)
+    // {
+    //     // Vec2f r_theta = lines[i];
+    //     float r = (*myFinalLines[i])[0], theta = (*myFinalLines[i])[1];
+
+    //     double a = cos(theta); 
+    //     double b = sin(theta);
+    //     double x0 = a*r; 
+    //     double y0 = b*r;
+    //     int x1 = int(x0 + 1000*(-b)); 
+    //     int y1 = int(y0 + 1000*(a));
+    //     int x2 = int(x0 - 1000*(-b)); 
+    //     int y2 = int(y0 - 1000*(a));
+    //     line(image, Point(x1, y1), Point(x2, y2), Scalar(0, 0, 255), 2, LINE_8);
+    // }
+
+
+
+    Point TL_corner = hough_inter(top, left);
+    Point TR_corner = hough_inter(top, right);
+    Point BL_corner = hough_inter(bottom, left);
+    Point BR_corner = hough_inter(bottom, right);
+
+    return {TL_corner, TR_corner, BL_corner, BR_corner};
+  }
+  
+  void AddPoints(cv::Mat& currentImage, std::vector<cv::Point>& corners){
+    //adding 4 corners
+    circle(currentImage, corners[0], 10, Scalar(255, 0, 0), FILLED, LINE_8);
+    circle(currentImage, corners[1], 10, Scalar(255, 0, 0), FILLED, LINE_8);
+    circle(currentImage, corners[2], 10, Scalar(255, 0, 0), FILLED, LINE_8);
+    circle(currentImage, corners[3], 10, Scalar(255, 0, 0), FILLED, LINE_8);
+  }
+  //This function is responsible for running our point localization algorithm on the image
+  void RunAlgorithm(cv::Mat& image, bool verbose){
+    // 1. Do depth threshholding
+
+    cv::Mat depth_thresh_image = PerformDepthThresholding(image, verbose);
+
+    // 2. Do HSV thresholding
+    cv::Mat hsv_thresh_image = PerformHSVThresholding(depth_thresh_image, verbose);
+
+    bool should_crop = false;
+    if (should_crop){
+        // 3. Resize the image to focus on the blue part of the mast (especially if it is far away)
+        int bottommost, topmost, leftmost, rightmost = 0;
+        GetResizedImagePostion(hsv_thresh_image, bottommost, topmost, leftmost, rightmost);
+
+        // 4. Add padding to the resized image locations
+        int padding = 50;
+        PadCroppedImage(image, padding, bottommost, topmost, leftmost, rightmost);
+
+        // 5. Actually Crop the images
+        Cropimage(image, hsv_thresh_image, bottommost, topmost, leftmost, rightmost);
+        cv::imshow("Cropped Image", image);
+        cv::waitKey(3);
+    }
+
+    // 6. Flood Fill
+    cv::Mat flood_filled = FloodFill(hsv_thresh_image);
+
+    // 7. Canny Edge Detection
+    cv::Mat edges;
+    Canny(flood_filled, edges, 255/3, 255);
+    
+    // 8. Find Corners
+    std::vector<cv::Point> four_corners = GetCorners(edges);
+    
+    //9. Plot corners
+    AddPoints(image, four_corners);
+    
+    cv::imshow("Final image", image);
+
+    cv::waitKey(3);
+
+
+  }
+
+
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
   {
-	cv_bridge::CvImagePtr cv_ptr;
+    //Acquire the open_cv image
+	  cv_bridge::CvImagePtr cv_ptr;
     try
     {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
@@ -92,94 +303,39 @@ public:
       return;
     }
 
-    // Run our algorithm on the image...
-
     cv::Mat image = cv_ptr->image;
-    // Do depth thresholding...
-    Mat depth_result = image;
-    if (is_depth_mask){
-        
-        cv::bitwise_and(image, image, depth_result, this->depth_mask);
-        // cv::imshow("Depth Thresholding", this->depth_mask);
 
-        // vector<vector<cv::Point> > contours;
-        // vector<cv::Vec4i> hierarchy;
-        // findContours(this->depth_mask, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE );
-        // int bottommost = contours[0][0].x;
-        // int topmost = contours[0][0].x;
-        // int leftmost = contours[0][0].x;
-        // int rightmost =  contours[0][0].x;
-        // for(int i = 0; i < contours.size(); i ++){
-        //   for(int k = 0; k <contours[0].size(); k++){
-        //     if(contours[i][k].x > leftmost){
-        //       leftmost = contours[i][k].x;
-        //     }
-        //     if(contours[i][k].x < rightmost){
-        //       rightmost = contours[i][k].x;
-        //     }
-        //     if(contours[i][k].y > bottommost){
-        //       bottommost = contours[i][k].y;
-        //     }
-        //     if(contours[i][k].y > topmost){
-        //       topmost = contours[i][k].y;
-        //     }
-        //   }
-        // }
-        // image = image(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
-        // cv::imshow("Post Depth Thresholding", image);
+    // Run our algorithm on the image...
+    try{
+      RunAlgorithm(image, false);
+    }catch(std::runtime_error e){
+      std::cout << e.what() << std::endl;
     }
+    
 
+    return;
 
+    /*
 
+    bool resized = false;
 
-    // Do HSV Thresholding
-    Mat hsv;
-    cvtColor(depth_result, hsv, COLOR_BGR2HSV);
-    Mat mask;
-    inRange(hsv, Scalar(90,50,70), Scalar(128,255,255), mask);
-    Mat result;
-    image.copyTo(result, mask);
-    // cv::imshow("Post Depgh and hsv", result);
-
-    // vector<vector<cv::Point> > contours;
-    // vector<cv::Vec4i> hierarchy;
-    // Mat gray;
-    // cv::cvtColor(result, gray, CV_BGR2GRAY);
-    // Canny(gray, gray, 255/3, 255);
-    // findContours(gray, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE );
-    // if(contours.size() > 0)
-    // {
-    // int bottommost = 200;
-    // int topmost = 200;
-    // int leftmost = 200;
-    // int rightmost = 200;
-    // for(int i = 0; i < contours.size(); i ++){
-    //   for(int k = 0; k <contours[0].size(); k++){
-    //     if(contours[i][k].x > 0 && contours[i][k].y > 0 && contours[i][k].x < 512 && contours[i][k].y < 512){
-    //       if(contours[i][k].x < leftmost){
-    //         leftmost = contours[i][k].x;
-    //       }
-    //       if(contours[i][k].x > rightmost){
-    //         rightmost = contours[i][k].x;
-    //       }
-    //       if(contours[i][k].y > bottommost){
-    //         bottommost = contours[i][k].y;
-    //       }
-    //       if(contours[i][k].y < topmost){
-    //         topmost = contours[i][k].y;
-    //       }
-    //   }
-    //   }
-    // }
-    // cout << leftmost << " " << topmost << " " << rightmost << " " << bottommost << endl;
-    // try
-    // {
-    //   mask = mask(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
-    // }
-    // catch(...)
-    // {
-    //   cout << "im unhappy" << endl;
-    // }
+    //resize basedd on above values where extreme bues were found
+    cout << leftmost << " " << topmost << " " << rightmost << " " << bottommost << endl;
+    try
+    {
+      mask = mask(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
+      cv::resize(mask, mask, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
+      image = image(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
+      cv::resize(image, image, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
+      resized = true;
+      cv::imshow("Post Depth Thresholding", mask);
+    }
+    catch(...) 
+    {
+      cout << "im unhappy" << endl;
+      return;
+    }
+    
     // Mat drawing = image;
     // // Scalar color = Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
     // for( size_t i = 0; i< contours.size(); i++ )
@@ -191,26 +347,12 @@ public:
     // }
 
 
-
-
-    //Fill in the mask...
-    Mat im_floodfill = mask.clone();
-    floodFill(im_floodfill, cv::Point(0, 0), Scalar(255));
-
-    Mat im_floodfill_inv;
-    bitwise_not(im_floodfill, im_floodfill_inv);
-
-    Mat im_out = (mask | im_floodfill_inv);
-
-
-
-
     // Canny Edge Detection
 	Mat edges; 
     //Canny(result, edges, 255/3, 255);
     Canny(im_out, edges, 255/3, 255);
     // cv::Mat depth_and_canny = edges;
-    // if (is_depth_mask){
+    // if (has_depth_mask){
     //     // Mat depth_result;
     //     cv::bitwise_and(edges, edges, edges, this->depth_mask);
     // }
@@ -298,6 +440,15 @@ public:
 
 
     // Update GUI Window
+    //re downsize image
+    // if(resized){
+    // cv::resize(image, image, Size((rightmost-leftmost)/2, (bottommost-topmost)/2), cv::INTER_LINEAR);
+    // cout << "okay" << endl;
+    // Scalar myColor(0, 0, 255);
+    // cv::copyMakeBorder(image, image, topmost, origBottommost-bottommost, leftmost, origRightmost-rightmost,BORDER_CONSTANT, myColor);
+    // cout << "what" << endl;
+    // }
+    std::cout << "FINISHED ITERATION" << std::endl;
     cv::imshow("source", image);
     // cv::imshow("masked", mask);
 
@@ -306,6 +457,8 @@ public:
     sensor_msgs::ImagePtr msg_out = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
     // Output modified video stream
     image_pub_.publish(msg_out);
+
+    */
     
   }
 
@@ -367,7 +520,7 @@ public:
   // Finds the lines that bound the mast
   // If image parameter is supplied, it will draw the lines on that image
   // returns (r, theta) pairs in order of LTRB
-  vector<Vec2f *> find_bounding_lines(Mat edges)
+  std::vector<cv::Vec2f *> FindBoundingLines(cv::Mat& edges)
   {
       Vec2f * leftLine = nullptr;
       Vec2f * rightLine = nullptr;

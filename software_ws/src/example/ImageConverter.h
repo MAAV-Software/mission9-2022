@@ -115,10 +115,10 @@ public:
   //Performs contour matching to get the portion of the image
   //RETURNS the resized image, AND the bottomost, topmost, leftmost, and rightmost positions in the resized image
   void GetResizedImagePostion(cv::Mat& orig_image, int& bottommost, int& topmost, int& leftmost, int& rightmost){
-    //set the initial vals for parameters
+    //set the initial vals for parameters (oppositte of what it should be and work our way by narrowing)
     bottommost = 0; 
-    topmost = orig_image.cols;
-    leftmost = orig_image.rows;
+    topmost = orig_image.rows;
+    leftmost = orig_image.cols;
     rightmost = 0;
     
 
@@ -137,8 +137,8 @@ public:
       for(int i = 0; i < contours.size(); i ++){
         int area = contourArea(contours[i]);
         //std::cout << "Area: " << area << std::endl;
-        if (area < 1000){
-          return;
+        if (area < 500){
+          continue;
         }
         for(int k = 0; k < contours[0].size(); k++){
           if(contours[i][k].x > 0 && contours[i][k].y > 0 && contours[i][k].x < 512 && contours[i][k].y < 512){
@@ -157,6 +157,20 @@ public:
           }
         }
       }
+    }
+
+    //Set to full image if nothing was detected
+    if (bottommost == 0){
+      bottommost = orig_image.rows;
+    }
+    if (topmost == orig_image.rows){
+      topmost = 0;
+    }
+    if (leftmost == orig_image.cols){
+      leftmost = 0;
+    }
+    if (rightmost == 0){
+      rightmost = orig_image.cols;
     }
   }
 
@@ -252,11 +266,13 @@ public:
     // 2. Do HSV thresholding
     cv::Mat hsv_thresh_image = PerformHSVThresholding(depth_thresh_image, verbose);
 
-    bool should_crop = false;
+    bool should_crop = true;
     if (should_crop){
+      // cout << 3 << endl;
         // 3. Resize the image to focus on the blue part of the mast (especially if it is far away)
         int bottommost, topmost, leftmost, rightmost = 0;
         GetResizedImagePostion(hsv_thresh_image, bottommost, topmost, leftmost, rightmost);
+        // cout <<  "first " << bottommost << " " << topmost <<  " " << leftmost << " " << rightmost << " image rows: " << image.rows << " image cols: " << image.cols << endl;
 
         // 4. Add padding to the resized image locations
         int padding = 50;
@@ -284,7 +300,7 @@ public:
     cv::imshow("Final image", image);
 
     cv::waitKey(3);
-
+    
 
   }
 

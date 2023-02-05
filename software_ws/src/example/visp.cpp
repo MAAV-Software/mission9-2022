@@ -425,9 +425,7 @@
                                     vec_ip[vec_ip_sorted[2].first], vec_ip[vec_ip_sorted[3].first],
                                     vpFeatureVanishingPoint::selectAtanOneOverRho());
   
-           task.set_cVe(
-            
-           );
+           task.set_cVe();
            task.set_eJe(eJe);
   
            // Compute the control law. Velocities are computed in the mobile robot reference

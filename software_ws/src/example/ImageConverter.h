@@ -29,10 +29,11 @@ class ImageConverter
   bool has_depth_mask = false;
   int x_offset = 0;
   int y_offset = 0;
-  cv::Point my_TR_corner = cv::Point(-1, -1);
-  cv::Point my_TL_corner = cv::Point(-1, -1);;
-  cv::Point my_BR_corner = cv::Point(-1, -1);;
-  cv::Point my_BL_corner = cv::Point(-1, -1);;
+  vector<cv::Point> myCorners{cv::Point(-1, -1), cv::Point(-1, -1), cv::Point(-1, -1), cv::Point(-1, -1)};
+  // cv::Point my_TR_corner = cv::Point(-1, -1);
+  // cv::Point my_TL_corner = cv::Point(-1, -1);;
+  // cv::Point my_BR_corner = cv::Point(-1, -1);;
+  // cv::Point my_BL_corner = cv::Point(-1, -1);;
 
 public:
   ImageConverter()
@@ -62,11 +63,11 @@ public:
   }
   vector<cv::Point> get_corner_points()
   {
-    vector<cv::Point> myCorners;
-    myCorners.push_back(my_TL_corner);
-    myCorners.push_back(my_TR_corner);
-    myCorners.push_back(my_BL_corner);
-    myCorners.push_back(my_BR_corner);
+    // vector<cv::Point> myCorners;//switch to private vector variable with corners inside of creating each time
+    // myCorners.push_back(my_TL_corner);
+    // myCorners.push_back(my_TR_corner);
+    // myCorners.push_back(my_BL_corner);
+    // myCorners.push_back(my_BR_corner);
     return myCorners;
   }
 
@@ -336,10 +337,10 @@ public:
       x_offset = center.x - image_center.x;
       y_offset = center.y - image_center.y;
       //update the four corners
-      my_TL_corner = TL_corner;
-      my_BL_corner = BL_corner;
-      my_TR_corner = TR_corner;
-      my_BR_corner = BR_corner;
+      myCorners[0] = TL_corner;
+      myCorners[1] = TR_corner;
+      myCorners[2] = BL_corner;
+      myCorners[3] = BR_corner;
       circle(image, center, 5, Scalar(0, 120, 255), FILLED, LINE_8);
     }
 

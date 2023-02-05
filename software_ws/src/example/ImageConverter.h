@@ -29,6 +29,11 @@ class ImageConverter
   bool has_depth_mask = false;
   int x_offset = 0;
   int y_offset = 0;
+  cv::Point my_TR_corner = cv::Point(-1, -1);
+  cv::Point my_TL_corner = cv::Point(-1, -1);;
+  cv::Point my_BR_corner = cv::Point(-1, -1);;
+  cv::Point my_BL_corner = cv::Point(-1, -1);;
+
 public:
   ImageConverter()
     : it_(nh_)
@@ -55,7 +60,15 @@ public:
   {
     return y_offset;
   }
-
+  vector<cv::Point> get_corner_points()
+  {
+    vector<cv::Point> myCorners;
+    myCorners.push_back(my_TL_corner);
+    myCorners.push_back(my_TR_corner);
+    myCorners.push_back(my_BL_corner);
+    myCorners.push_back(my_BR_corner);
+    return myCorners;
+  }
 
   void depthImageCb(const sensor_msgs::ImageConstPtr& msg){
     cv_bridge::CvImagePtr cv_ptr;
@@ -266,7 +279,7 @@ public:
     // 2. Do HSV thresholding
     cv::Mat hsv_thresh_image = PerformHSVThresholding(depth_thresh_image, verbose);
 
-    bool should_crop = true;
+    bool should_crop = false;
     if (should_crop){
       // cout << 3 << endl;
         // 3. Resize the image to focus on the blue part of the mast (especially if it is far away)
@@ -297,10 +310,43 @@ public:
     //9. Plot corners
     AddPoints(image, four_corners);
     
+
+
+    // Get offsets
+    Point TL_corner = four_corners[0];
+    Point TR_corner = four_corners[1];
+    Point BL_corner = four_corners[2];
+    Point BR_corner = four_corners[3];
+    Point center = Point(int((TL_corner.x + TR_corner.x + BL_corner.x + BR_corner.x)/4.0), int((TL_corner.y + TR_corner.y + BL_corner.y + BR_corner.y)/4.0));
+
+    int height = image.cols;
+    int width = image.rows;
+    // width, height, _ = image.shape
+    Point image_center = Point(int(height/2), int(width/2));
+    circle(image, image_center, 10, Scalar(255, 255, 0), FILLED, LINE_8);
+
+     //attempting to filter the points to ony use well spaced out ones, points must be at least 100 away
+    int threshold_too_close = 50;
+    if(!(abs(TL_corner.x - TR_corner.x) < threshold_too_close || 
+    abs(TL_corner.y - BL_corner.y) < threshold_too_close || 
+    abs(TR_corner.y - BR_corner.y) < threshold_too_close
+    || abs(BL_corner.x - BR_corner.x) < threshold_too_close))
+    {
+      // This is a valid mast ID
+      x_offset = center.x - image_center.x;
+      y_offset = center.y - image_center.y;
+      //update the four corners
+      my_TL_corner = TL_corner;
+      my_BL_corner = BL_corner;
+      my_TR_corner = TR_corner;
+      my_BR_corner = BR_corner;
+      circle(image, center, 5, Scalar(0, 120, 255), FILLED, LINE_8);
+    }
+
+
     cv::imshow("Final image", image);
 
     cv::waitKey(3);
-    
 
   }
 

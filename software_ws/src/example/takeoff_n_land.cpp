@@ -53,6 +53,8 @@
 //#include <visp3/vs/vpServoDisplay.h>
 #include <visp/vpServo.h>
 
+#include "Utilities.h"
+
 
 using namespace cv;
 using namespace std;
@@ -68,6 +70,7 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
 
 int main(int argc, char **argv)
 {
+    Utilities U;
     double tagSize = 0.35;
 
     ros::init(argc, argv, "offb_node");
@@ -88,91 +91,113 @@ int main(int argc, char **argv)
     ros::Rate rate(20.0);
 
     // //MARK - Set up Visual Servoing
-    // vpServo task; // Visual servoing taskZdf
+    vpServo task; // Visual servoing taskZdf
+    vpCameraParameters cam(565.6, 565.6, 320.5, 240.5);
   
-    // // double lambda = 0.5;
-    // vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
-    // task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
-    // task.setInteractionMatrixType(vpServo::CURRENT);
-    // task.setLambda(lambda);
+    // double lambda = 0.5;
+    vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
+    task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
+    task.setInteractionMatrixType(vpServo::CURRENT);
+    task.setLambda(lambda);
 
-    // vpRxyzVector c1_rxyz_c2(0, 0, 0);
-    // vpRotationMatrix c1Rc2(c1_rxyz_c2);
-    // vpHomogeneousMatrix c1Mc2(vpTranslationVector(), c1Rc2); //Homo matrix from c1 to c2
-
-    // vpRotationMatrix c1Re{0, 1, 0, 0, 0, 1, 1, 0, 0};
-    // vpTranslationVector c1te(0, 0, 0); // TODO: Add translation vector 
-    // vpHomogeneousMatrix c1Me(c1te, c1Re);
-
-    // vpHomogeneousMatrix c2Me = c1Mc2.inverse() * c1Me;
-    // vpVelocityTwistMatrix cVe(c2Me);
-    
-    // task.set_cVe(cVe); // TODO- See if this is actually needed 
     
 
-    // vpMatrix eJe(6, 4, 0);
+    vpRxyzVector c1_rxyz_c2(0, 0, 0);
+    vpRotationMatrix c1Rc2(c1_rxyz_c2);
+    vpHomogeneousMatrix c1Mc2(vpTranslationVector(), c1Rc2); //Homo matrix from c1 to c2
 
-    // eJe[0][0] = 1;
-    // eJe[1][1] = 1;
-    // eJe[2][2] = 1;
-    // eJe[5][3] = 1;
+    vpRotationMatrix c1Re{0, 1, 0, 0, 0, 1, 1, 0, 0};
+    vpTranslationVector c1te(0, 0, 0); // TODO: Add translation vector 
+    vpHomogeneousMatrix c1Me(c1te, c1Re);
 
-    // //Desired distance to the target
-    // double Z_d = 1.;
+    vpHomogeneousMatrix c2Me = c1Mc2.inverse() * c1Me;
+    vpVelocityTwistMatrix cVe(c2Me);
+    
+    task.set_cVe(cVe); // TODO- See if this is actually needed 
+    
 
-    // //
+    vpMatrix eJe(6, 4, 0);
+
+    eJe[0][0] = 1;
+    eJe[1][1] = 1;
+    eJe[2][2] = 1;
+    eJe[5][3] = 1;
+
+    //Desired distance to the target
+    double Z_d = 1.;
 
     // // This effectively takes the four points in camera frame and "pushes" them back by a distance Z_d (desired distance)
-    // // CREATES: vec_P_d which are the desired 4 corners of the mast in the camera frame --> (u1, v1), (u2, v2), (u3, v3), (u4, v4)
-    // double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
-    // double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
-    // std::vector<vpPoint> vec_P, vec_P_d;
+    // CREATES: vec_P_d which are the desired 4 corners of the mast in the camera frame --> (u1, v1), (u2, v2), (u3, v3), (u4, v4)
+    double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
+    double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
+    std::vector<vpPoint> vec_P, vec_P_d;
 
-    // for (int i = 0; i < 4; i++) {
-    //     vpPoint P_d(X[i], Y[i], 0); 
-    //     vpHomogeneousMatrix cdMo(0, 0, Z_d, 0, 0, 0);
-    //     P_d.track(cdMo); //fj 
-    //     vec_P_d.push_back(P_d);
-    // }
+    for (int i = 0; i < 4; i++) {
+        vpPoint P_d(X[i], Y[i], 0); 
+        vpHomogeneousMatrix cdMo(0, 0, Z_d, 0, 0, 0);
+        P_d.track(cdMo); //fj 
+        vec_P_d.push_back(P_d);
+    }
 
-    // vpMomentObject m_obj(3), m_obj_d(3);    //m_obj is some polygon object that is initialized of some vector of points of the mast
-    // vpMomentDatabase mdb, mdb_d;            // A database of moments that is necessary because some moments are dependent on each other. 
-    // vpMomentBasic mb_d;                     // Here only to get the desired area m00
-    // vpMomentGravityCenter mg, mg_d;         //Moment for the gravity center
-    // vpMomentCentered mc, mc_d;              //Moment Centered --> Depends on gravity center moment ^
-    // vpMomentAreaNormalized man(0, Z_d), man_d(0, Z_d); // Declare normalized area updated below with m00
-    // vpMomentGravityCenterNormalized mgn, mgn_d;        // Declare normalized gravity center
+    vpMomentObject m_obj(3), m_obj_d(3);    //m_obj is some polygon object that is initialized of some vector of points of the mast
+    vpMomentDatabase mdb, mdb_d;            // A database of moments that is necessary because some moments are dependent on each other. 
+    vpMomentBasic mb_d;                     // Here only to get the desired area m00
+    vpMomentGravityCenter mg, mg_d;         //Moment for the gravity center
+    vpMomentCentered mc, mc_d;              //Moment Centered --> Depends on gravity center moment ^
+    vpMomentAreaNormalized man(0, Z_d), man_d(0, Z_d); // Declare normalized area updated below with m00
+    vpMomentGravityCenterNormalized mgn, mgn_d;        // Declare normalized gravity center
     
     
-    // // Desired moments
-    // m_obj_d.setType(vpMomentObject::DENSE_POLYGON); // Consider the AprilTag as a polygon type
-    // m_obj_d.fromVector(vec_P_d);                    // Initialize the object with the points coordinates
+    // Desired moments
+    m_obj_d.setType(vpMomentObject::DENSE_POLYGON); // Consider the AprilTag as a polygon type
+    m_obj_d.fromVector(vec_P_d);                    // Initialize the object with the points coordinates
   
-    // mb_d.linkTo(mdb_d);       // Add basic moments to database
-    // mg_d.linkTo(mdb_d);       // Add gravity center to database
-    // mc_d.linkTo(mdb_d);       // Add centered moments to database
-    // man_d.linkTo(mdb_d);      // Add area normalized to database
-    // mgn_d.linkTo(mdb_d);      // Add gravity center normalized to database
-    // mdb_d.updateAll(m_obj_d); // All of the moments must be updated, not just man_d
-    // mg_d.compute();           // Compute gravity center moment
-    // mc_d.compute();           // Compute centered moments AFTER gravity center
+    mb_d.linkTo(mdb_d);       // Add basic moments to database
+    mg_d.linkTo(mdb_d);       // Add gravity center to database
+    mc_d.linkTo(mdb_d);       // Add centered moments to database
+    man_d.linkTo(mdb_d);      // Add area normalized to database
+    mgn_d.linkTo(mdb_d);      // Add gravity center normalized to database
+    mdb_d.updateAll(m_obj_d); // All of the moments must be updated, not just man_d
+    mg_d.compute();           // Compute gravity center moment
+    mc_d.compute();           // Compute centered moments AFTER gravity center
 
-    // man.setDesiredArea(area); // Desired area was init at 0 (unknow at contruction),
-    //                             // need to be updated here
-    // man.compute();            // Compute area normalized moment AFTER centered moment
-    // mgn.compute();            // Compute gravity center normalized moment AFTER area normalized
-    //                             // moment
+    double area = 2;
+    if (m_obj_d.getType() == vpMomentObject::DISCRETE)
+        area = mb_d.get(2, 0) + mb_d.get(0, 2);
+    else
+        area = mb_d.get(0, 0);
+    man_d.setDesiredArea(area); // Desired area was init at 0 (unknow at contruction),
+                                // need to be updated here
+    man_d.compute();            // Compute area normalized moment AFTER centered moment
+    mgn_d.compute();            // Compute gravity center normalized moment AFTER area normalized
+                                // moment
     
-    // //Compute two of the interaction matricies
-    // s_mgn.update(A, B, C); //updates Z
-    // s_mgn.compute_interaction();
-    // s_man.update(A, B, C); //updates Z
-    // s_man.compute_interaction();
+    //Define the image plane
+    double A = 0.0;
+    double B = 0.0;
+    double C = 1.0 / Z_d;
 
-    // // Update desired vanishing point feature for the horizontal line
-    // s_vp_d.setAtanOneOverRho(0);
-    // s_vp_d.setAlpha(0);
+    // Construct area normalized features
+    std::cout << 1 << std::endl;
+    vpFeatureMomentGravityCenterNormalized s_mgn(mdb, A, B, C), s_mgn_d(mdb_d, A, B, C);
+    vpFeatureMomentAreaNormalized s_man(mdb, A, B, C), s_man_d(mdb_d, A, B, C);
+    vpFeatureVanishingPoint s_vp, s_vp_d;
+    
+    //Compute two of the interaction matricies
+    task.addFeature(s_mgn, s_mgn_d);
+    task.addFeature(s_man, s_man_d);
+    task.addFeature(s_vp, s_vp_d, vpFeatureVanishingPoint::selectAtanOneOverRho());
 
+    // Update desired gravity center normalized feature
+    s_mgn_d.update(A, B, C);
+    s_mgn_d.compute_interaction();
+    // Update desired area normalized feature
+    s_man_d.update(A, B, C);
+    s_man_d.compute_interaction();
+
+    // Update desired vanishing point feature for the horizontal line
+    s_vp_d.setAtanOneOverRho(0);
+    s_vp_d.setAlpha(0);
     // //END - Ended setting up visual servoing
 
     // wait for FCU connection
@@ -188,6 +213,7 @@ int main(int argc, char **argv)
     target.position.x = 0;
     target.position.y = 0;
     target.position.z = FLIGHT_ALTITUDE;
+
 
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
@@ -235,65 +261,111 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
-
     //Start the image stuff
     ImageConverter ic;
 
+    //                                                          MARK THIS HOVERS IN PLACE
     // // go to the first waypoint
     // target.position.x = 0;
     // target.position.y = 0;
     // target.position.z = FLIGHT_ALTITUDE;
 
-    ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && true/*i < 200*/; ++i){
-      local_pos_pub.publish(target);
-      ros::spinOnce();
-      rate.sleep();
-    }
+    // ROS_INFO("going to the first way point");
+    // for(int i = 0; ros::ok() && true/*i < 200*/; ++i){
+    //   local_pos_pub.publish(target);
+    //   ros::spinOnce();
+    //   rate.sleep();
+    // }
+    //                                                         END MARK THIS HOVERS IN PLACE
+
+
     // ROS_INFO("first way point finished!");
 
 
     //mavros_msgs::PositionTarget target;
-    //target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
+    //
 
     //DEBUG: Testing visual servoing
-    // while (true){
-    //     //Get some points
-    //     vec_P.clear();
-    //     vpPoint P1, P2, P3, P4;
-    //     P1.set_x(0); P1.set_y(0); vec_P.push_back(P1);
-    //     P2.set_x(50); P2.set_y(0); vec_P.push_back(P2);
-    //     P3.set_x(50); P3.set_y(50); vec_P.push_back(P3); 
-    //     P4.set_x(0); P4.set_y(50); vec_P.push_back(P4); 
+    while (true){
+        //Get some points
+        vector<cv::Point> cv_points = ic.get_corner_points(); //TL TR BL BR
+        vector<vpImagePoint> visp_mast_points = U.cvPointsToVPImagePoints(cv_points);
+
+        if (cv_points[0].x == -1){
+            local_pos_pub.publish(target);
+            ros::spinOnce();
+            rate.sleep();
+            std::cout << "Can't see crap, waiting a bit" << std::endl;
+            continue;
+        }
+        // for (auto point : visp_mast_points){
+        //     std::cout << "(" << point.get_i() << ", " << point.get_j() << ") ";
+        // }
+        // cout << "cv_points: " << endl;
+        // for (auto point : cv_points){
+        //     std::cout << "(" << point.x << ", " << point.y << ") ";
+        // }
+        // cout << endl;
+
+       
+
+        // Update current points used to compute the moments
+        vec_P.clear();
+        for (size_t i = 0; i < visp_mast_points.size(); i++) { // size = 4
+            double x = 0, y = 0;
+            vpPixelMeterConversion::convertPoint(cam, visp_mast_points[i], x, y);
+            vpPoint P;
+            P.set_x(x);
+            P.set_y(y);
+            vec_P.push_back(P);
+        }
+
+        // Update Current moments
+        m_obj.setType(vpMomentObject::DENSE_POLYGON); // Consider the AprilTag as a polygon
+        m_obj.fromVector(vec_P);                      // Initialize the object with the points coordinates
+
+        mg.linkTo(mdb);           // Add gravity center to database
+        mc.linkTo(mdb);           // Add centered moments to database
+        man.linkTo(mdb);          // Add area normalized to database
+        mgn.linkTo(mdb);          // Add gravity center normalized to database
+        mdb.updateAll(m_obj);     // All of the moments must be updated, not just an_d
+        mg.compute();             // Compute gravity center moment
+        mc.compute();             // Compute centered moments AFTER gravity center
+        man.setDesiredArea(area); // Desired area was init at 0 (unknow at contruction),
+                                    // need to be updated here
+        man.compute();            // Compute area normalized moment AFTER centered moment
+        mgn.compute();            // Compute gravity center normalized moment AFTER area normalized
+                                    // moment
+
+        s_mgn.update(A, B, C);
+        s_mgn.compute_interaction();
+        s_man.update(A, B, C);
+        s_man.compute_interaction();
+
+        //Top two points for first line, bottom two for the second line TL TR BL BR
+        vpFeatureBuilder::create(s_vp, cam, visp_mast_points[0], visp_mast_points[1],
+                                    visp_mast_points[2], visp_mast_points[3],
+                                    vpFeatureVanishingPoint::selectAtanOneOverRho());
         
-    //     //Update the moments
-    //     m_obj.setType(vpMomentObject::DENSE_POLYGON); // Consider the AprilTag as a polygon
-    //     m_obj.fromVector(vec_P);                      // Initialize the object with the points coordinates
+        task.set_cVe(cVe);
+        task.set_eJe(eJe);
+  
+        // Compute the control law.
+        vpColVector ve = task.computeControlLaw();
+        std::cout << "------start------" << std::endl;
+        std::cout << ve << std::endl;
+        std::cout << "-------end-------" << std::endl;
 
-    //     mg.linkTo(mdb);           // Add gravity center to database
-    //     mc.linkTo(mdb);           // Add centered moments to database
-    //     man.linkTo(mdb);          // Add area normalized to database
-    //     mgn.linkTo(mdb);          // Add gravity center normalized to database
-    //     mdb.updateAll(m_obj);     // All of the moments must be updated, not just an_d
-    //     mg.compute();             // Compute gravity center moment
-    //     mc.compute();             // Compute centered moments AFTER gravity center
-    //     man.setDesiredArea(area); // Desired area was init at 0 (unknow at contruction),
-    //                                 // need to be updated here
-    //     man.compute();            // Compute area normalized moment AFTER centered moment
-    //     mgn.compute();            // Compute gravity center normalized moment AFTER area normalized
-    //                                 // moment
+    
+        //Command the robot
+        local_pos_pub.publish(target);
+        ros::spinOnce();
+        rate.sleep();
+        continue;
+    }
 
-    //     s_mgn.update(A, B, C);
-    //     s_mgn.compute_interaction();
-    //     s_man.update(A, B, C);
-    //     s_man.compute_interaction();
 
-    //     //
-    //     vpFeatureBuilder::create(s_vp, cam, vec_ip[vec_ip_sorted[0].first], vec_ip[vec_ip_sorted[1].first],
-    //                                 vec_ip[vec_ip_sorted[2].first], vec_ip[vec_ip_sorted[3].first],
-    //                                 vpFeatureVanishingPoint::selectAtanOneOverRho());
-    // }
-
+    // target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
     // while (true){
     //     cout << "X err --> "<< ic.get_x_offset() << "| Y err --> " << ic.get_y_offset() << endl;
     //     int x_err = ic.get_x_offset();
@@ -302,12 +374,12 @@ int main(int argc, char **argv)
     //     double K_P = 0.01;
 
     //     target.velocity.x = 0;//
-    //     // target.velocity.y = -x_err * K_P; 
-    //     target.velocity.y = x_err < 0 ?  max(-x_err * K_P, -0.1) : min(-x_err * K_P, 0.1);
-    //     // target.velocity.z = -1*y_err * K_P;
-    //     target.velocity.z = y_err < 0 ?  max(-y_err * K_P, -0.1) : min(-y_err * K_P, 0.1);
+    //     //target.velocity.y = -x_err * K_P; 
+    //     target.velocity.y = x_err < 0 ?  max(-x_err * K_P, -0.05) : min(-x_err * K_P, 0.05);
+    //     //target.velocity.z = -1*y_err * K_P;
+    //     target.velocity.z = y_err < 0 ?  max(-y_err * K_P, -0.05) : min(-y_err * K_P, 0.05);
     //     target.coordinate_frame = 1;
-    //     cout << "X velocity: " << x_err * K_P << endl;
+    //     cout << "Y velocity: " << x_err * K_P << endl;
 
     //     local_pos_pub.publish(target);
     //     ros::spinOnce();

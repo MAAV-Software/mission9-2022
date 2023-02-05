@@ -1,0 +1,8 @@
+prefix=/mission9-2022/software_ws/devel
+
+Name: simple_waypoint_following
+Description: Description of simple_waypoint_following
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

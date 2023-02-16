@@ -13,6 +13,7 @@
 #include <string>
 #include <cassert>
 #include <exception>
+#include "RunningAverageFilter.h"
 using namespace cv;
 using namespace std;
 
@@ -35,9 +36,16 @@ class ImageConverter
   // cv::Point my_BR_corner = cv::Point(-1, -1);;
   // cv::Point my_BL_corner = cv::Point(-1, -1);;
 
+  int num_in_queue = 10;
+  RunningAverageFilter TL_filter;
+  RunningAverageFilter TR_filter;
+  RunningAverageFilter BL_filter;
+  RunningAverageFilter BR_filter;
+  
+
 public:
   ImageConverter()
-    : it_(nh_)
+    : it_(nh_), TL_filter(num_in_queue), TR_filter(num_in_queue), BL_filter(num_in_queue), BR_filter(num_in_queue)
   {
     // Subscrive to input video feed and publish output video feed
     image_sub_ = it_.subscribe("/camera/rgb/image_raw", 1,
@@ -63,12 +71,24 @@ public:
   }
   vector<cv::Point> get_corner_points()
   {
-    // vector<cv::Point> myCorners;//switch to private vector variable with corners inside of creating each time
-    // myCorners.push_back(my_TL_corner);
-    // myCorners.push_back(my_TR_corner);
-    // myCorners.push_back(my_BL_corner);
-    // myCorners.push_back(my_BR_corner);
     return myCorners;
+  }
+
+  vector<cv::Point> get_filtered_corner_points()
+  {
+    TL_filter.update_filter(myCorners[0]);
+    cv::Point TL_filtered = TL_filter.get_running_average();
+
+    TR_filter.update_filter(myCorners[1]);
+    cv::Point TR_filtered = TR_filter.get_running_average();
+
+    BL_filter.update_filter(myCorners[2]);
+    cv::Point BL_filtered = BL_filter.get_running_average();
+
+    BR_filter.update_filter(myCorners[3]);
+    cv::Point BR_filtered = BR_filter.get_running_average();
+
+    return {TL_filtered, TR_filtered, BL_filtered, BR_filtered};
   }
 
   void depthImageCb(const sensor_msgs::ImageConstPtr& msg){
@@ -264,8 +284,10 @@ public:
     return {TL_corner, TR_corner, BL_corner, BR_corner};
   }
   
-  void AddPoints(cv::Mat& currentImage, std::vector<cv::Point>& corners){
+  void AddPoints(cv::Mat& currentImage, std::vector<cv::Point> corners){
     //adding 4 corners
+    corners = get_filtered_corner_points();
+
     circle(currentImage, corners[0], 10, Scalar(255, 0, 0), FILLED, LINE_8);
     circle(currentImage, corners[1], 10, Scalar(255, 0, 0), FILLED, LINE_8);
     circle(currentImage, corners[2], 10, Scalar(255, 0, 0), FILLED, LINE_8);

@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     vpServo task; // Visual servoing taskZdf
     vpCameraParameters cam(565.6, 565.6, 320.5, 240.5);
   
-    double lambda = 0.5;
+    double lambda = 0.05;
     //vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
     task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
     task.setInteractionMatrixType(vpServo::CURRENT);
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
-        //todo: local_pos_pub.publish(target);
+        local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();
     }
@@ -236,46 +236,46 @@ int main(int argc, char **argv)
 
     ros::Time last_request = ros::Time::now();
 
-    // todo: change to offboard mode and arm
-    // while(ros::ok() && !current_state.armed){
-    //     if( current_state.mode != "OFFBOARD" &&
-    //         (ros::Time::now() - last_request > ros::Duration(5.0))){
-    //       ROS_INFO(current_state.mode.c_str());
-    //         if( set_mode_client.call(offb_set_mode) &&
-    //             offb_set_mode.response.mode_sent){
-    //             ROS_INFO("Offboard enabled");
-    //         }
-    //         last_request = ros::Time::now();
-    //     } else {
-    //         if( !current_state.armed &&
-    //             (ros::Time::now() - last_request > ros::Duration(5.0))){
-    //             if( arming_client.call(arm_cmd) &&
-    //                 arm_cmd.response.success){
-    //                 ROS_INFO("Vehicle armed");
-    //             }
-    //             last_request = ros::Time::now();
-    //         }
-    //     }
-    //     local_pos_pub.publish(target);
-    //     ros::spinOnce();
-    //     rate.sleep();
-    // }
+    //change to offboard mode and arm
+    while(ros::ok() && !current_state.armed){
+        if( current_state.mode != "OFFBOARD" &&
+            (ros::Time::now() - last_request > ros::Duration(5.0))){
+          ROS_INFO(current_state.mode.c_str());
+            if( set_mode_client.call(offb_set_mode) &&
+                offb_set_mode.response.mode_sent){
+                ROS_INFO("Offboard enabled");
+            }
+            last_request = ros::Time::now();
+        } else {
+            if( !current_state.armed &&
+                (ros::Time::now() - last_request > ros::Duration(5.0))){
+                if( arming_client.call(arm_cmd) &&
+                    arm_cmd.response.success){
+                    ROS_INFO("Vehicle armed");
+                }
+                last_request = ros::Time::now();
+            }
+        }
+        local_pos_pub.publish(target);
+        ros::spinOnce();
+        rate.sleep();
+    }
 
     //Start the image stuff
     ImageConverter ic;
 
     //                                                          MARK THIS HOVERS IN PLACE
-    // // go to the first waypoint
-    // target.position.x = 0;
-    // target.position.y = 0;
-    // target.position.z = FLIGHT_ALTITUDE;
+    // go to the first waypoint
+    target.position.x = 0;
+    target.position.y = 0;
+    target.position.z = FLIGHT_ALTITUDE;
 
-    // ROS_INFO("going to the first way point");
-    // for(int i = 0; ros::ok() && true/*i < 200*/; ++i){
-    //   local_pos_pub.publish(target);
-    //   ros::spinOnce();
-    //   rate.sleep();
-    // }
+    ROS_INFO("going to the first way point");
+    for(int i = 0; ros::ok() && i < 200; ++i){
+      local_pos_pub.publish(target);
+      ros::spinOnce();
+      rate.sleep();
+    }
     //                                                         END MARK THIS HOVERS IN PLACE
 
 
@@ -292,14 +292,21 @@ int main(int argc, char **argv)
 
         
         //Get some points
-        vector<cv::Point> cv_points = ic.get_corner_points(); //TL TR BL BR
+        vector<cv::Point> cv_points = ic.get_filtered_corner_points(); //TL TR BL BR
         vector<vpImagePoint> visp_mast_points = U.cvPointsToVPImagePoints(cv_points);
 
         if (cv_points[0].x == -1){
-            //todo: local_pos_pub.publish(target);
+            
+            
+            std::cout << "Can't see crap, waiting a bit" << std::endl;
+            // target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
+            // target.velocity.x = 0;
+            // target.velocity.y = 0;
+            // target.velocity.z = 0; 
+            
+            TODO: local_pos_pub.publish(target);
             ros::spinOnce();
             rate.sleep();
-            std::cout << "Can't see crap, waiting a bit" << std::endl;
             continue;
         }
 
@@ -336,20 +343,11 @@ int main(int argc, char **argv)
 
         m_obj.setType(vpMomentObject::DENSE_POLYGON); // Consider the MAST as a polygon
         m_obj.fromVector(vec_P);                      // Initialize the object with the points coordinates
-        cout << "m_obj " << m_obj << endl;
-        cout << "m_obj_d " << m_obj_d << endl;
+
         mg.linkTo(mdb);           // Add gravity center to database
-        cout << "mg " << mg << endl;
-        cout << "mg_d " << mg_d << endl;
         mc.linkTo(mdb);           // Add centered moments to database
-        //cout << "mc " << mc << endl;
-        cout << "mc_d " << mc_d << endl;
         man.linkTo(mdb);          // Add area normalized to database
-        cout << "man " << man << endl;
-        cout << "man_d " << man_d << endl;
         mgn.linkTo(mdb);          // Add gravity center normalized to database
-        cout << "mgn " << mgn << endl;
-        cout << "mgn_d " << mgn_d << endl;
         mdb.updateAll(m_obj);     // All of the moments must be updated, not just an_d
         mg.compute();             // Compute gravity center moment
         mc.compute();             // Compute centered moments AFTER gravity center
@@ -367,31 +365,47 @@ int main(int argc, char **argv)
                 cout << 3 << endl;
 
 
+
+
+
         //Top two points for first line, bottom two for the second line TL TR BL BR
         vpFeatureBuilder::create(s_vp, cam, visp_mast_points[0], visp_mast_points[1],
                                     visp_mast_points[2], visp_mast_points[3],
                                     vpFeatureVanishingPoint::selectAtanOneOverRho());
-        
+
+        //Print out the current features:
+        std::cout << "CURRENT FEATURES:" << std::endl;
+        s_mgn.print();
+        s_man.print();
+        cout << "atan(1/p): "<<s_vp.getAtanOneOverRho()<<endl;
+        cout << endl;
+
+        std::cout << "DESIERD FEATURES" << endl;
+        s_mgn_d.print();
+        s_man_d.print();
+        cout << "desired atan(1/p): "<<s_vp_d.getAtanOneOverRho()<<endl;
+        cout << endl;        
+
+
         task.set_cVe(cVe);
         task.set_eJe(eJe);
-        cout << 4 << endl;
   
         // Compute the control law.
         vpColVector ve = task.computeControlLaw();
-        cout << 5 << endl;
         std::cout << "------start------" << std::endl;
         std::cout << ve << std::endl;
         std::cout << "-------end-------" << std::endl;
 
     
-        //Command the robot
-        //TODO: local_pos_pub.publish(target);
+        //Command the robo
+        // target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
+        // target.coordinate_frame = 1;
+        // target.velocity.x = 0;
+        // target.velocity.y = ve[2];
+        // target.velocity.z = 0;
+        local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();
-        // }catch(...){
-        //     num_errs ++;
-        //     std::cout << "There was an error " << num_errs << std::endl;
-        // }
     }
 
 

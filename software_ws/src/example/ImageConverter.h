@@ -36,7 +36,7 @@ class ImageConverter
   // cv::Point my_BR_corner = cv::Point(-1, -1);;
   // cv::Point my_BL_corner = cv::Point(-1, -1);;
 
-  int num_in_queue = 10;
+  int num_in_queue = 5;
   RunningAverageFilter TL_filter;
   RunningAverageFilter TR_filter;
   RunningAverageFilter BL_filter;

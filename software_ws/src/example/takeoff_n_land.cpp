@@ -94,8 +94,8 @@ int main(int argc, char **argv)
     vpServo task; // Visual servoing taskZdf
     vpCameraParameters cam(565.6, 565.6, 320.5, 240.5);
   
-    double lambda = 0.05;
-    //vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
+    //double lambda = 0.5;
+    vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
     task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
     task.setInteractionMatrixType(vpServo::CURRENT);
     task.setLambda(lambda);
@@ -377,7 +377,10 @@ int main(int argc, char **argv)
         std::cout << "CURRENT FEATURES:" << std::endl;
         s_mgn.print();
         s_man.print();
-        cout << "atan(1/p): "<<s_vp.getAtanOneOverRho()<<endl;
+
+        s_vp.setAtanOneOverRho(0);
+
+        cerr << s_vp.getAtanOneOverRho() << ", ";
         cout << endl;
 
         std::cout << "DESIERD FEATURES" << endl;
@@ -394,15 +397,16 @@ int main(int argc, char **argv)
         vpColVector ve = task.computeControlLaw();
         std::cout << "------start------" << std::endl;
         std::cout << ve << std::endl;
+        std::cerr << ve[0] << ", " << ve[1] << ", " << ve[2] << ", " << ve[3] << std::endl;
         std::cout << "-------end-------" << std::endl;
 
     
         //Command the robo
-        // target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
-        // target.coordinate_frame = 1;
-        // target.velocity.x = 0;
-        // target.velocity.y = ve[2];
-        // target.velocity.z = 0;
+        target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
+        target.coordinate_frame = 1;
+        target.velocity.x = ve[0];
+        target.velocity.y = -ve[2];
+        target.velocity.z = -ve[1];
         local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();

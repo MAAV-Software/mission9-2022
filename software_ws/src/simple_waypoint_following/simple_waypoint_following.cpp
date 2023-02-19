@@ -15,27 +15,11 @@ struct Waypoint {
 	int z;
 };
 
-std::vector<Waypoint> waypoints;
-
 void Waypoint_init(Waypoint* coord, int xval, int yval, int zval) {
-	coord->x = xval;
-	coord->y = yval;
-	coord->z = zval;
+    coord->x = xval;
+    coord->y = yval;
+    coord->z = zval;
 }
-
-Waypoint waypoint1;
-Waypoint_init(&waypoint1, 5, 5, 5);
-
-Waypoint waypoint2;
-Waypoint_init(&waypoint1, -10, 5, -5);
-
-Waypoint waypoint3;
-Waypoint_init(&waypoint1, 10, 7, 2);
-
-waypoints.push_back(waypoint1);
-waypoints.push_back(waypoint2);
-waypoints.push_back(waypoint3);
-
 
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
@@ -48,6 +32,21 @@ void get_current_pos(const geometry_msgs::PoseStamped::ConstPtr& msg) {
 }
 
 int main(int argc, char **argv) {
+    std::vector<Waypoint> waypoints;
+
+    Waypoint waypoint1;
+    Waypoint_init(&waypoint1, 5, 5, 5);
+
+    Waypoint waypoint2;
+    Waypoint_init(&waypoint1, -10, 5, -5);
+
+    Waypoint waypoint3;
+    Waypoint_init(&waypoint1, 10, 7, 2);
+
+    waypoints.push_back(waypoint1);
+    waypoints.push_back(waypoint2);
+    waypoints.push_back(waypoint3);
+
     ros::init(argc, argv, "offb_node");
     ros::NodeHandle nh;
 

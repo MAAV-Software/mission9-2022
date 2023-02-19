@@ -27,10 +27,10 @@ Waypoint waypoint1;
 Waypoint_init(&waypoint1, 5, 5, 5);
 
 Waypoint waypoint2;
-Waypoint_init(&waypoint1, -10, 5, -5);
+Waypoint_init(&waypoint2, -10, 5, -5);
 
 Waypoint waypoint3;
-Waypoint_init(&waypoint1, 10, 7, 2);
+Waypoint_init(&waypoint3, 10, 7, 2);
 
 waypoints.push_back(waypoint1);
 waypoints.push_back(waypoint2);
@@ -135,23 +135,23 @@ int main(int argc, char **argv) {
         bool at_waypoint = false;
         ROS_INFO("going to next way point");
         while (!at_waypoint && ros::ok()) {
-            if (abs(current_pos.pose.position.x - waypoints.at(0).x) > 0.1) {
-                pose.pose.position.x = waypoints.at(0).x;
+            if (abs(current_pos.pose.position.x - waypoint.x) > 0.1) {
+                pose.pose.position.x = waypoint.x;
             }
-            if (abs(current_pos.pose.position.y - waypoints.at(0).y) > 0.1) {
-                pose.pose.position.y = waypoints.at(0).y;
+            if (abs(current_pos.pose.position.y - waypoint.y) > 0.1) {
+                pose.pose.position.y = waypoint.y;
             }
-            if (abs(current_pos.pose.position.z - waypoints.at(0).z) > 0.1) {
-                pose.pose.position.z = waypoints.at(0).z;
+            if (abs(current_pos.pose.position.z - waypoint.z) > 0.1) {
+                pose.pose.position.z = waypoint.z;
             }
             for (int i = 0; ros::ok() && i < 10*20; ++i){
                 local_pos_pub.publish(pose);
                 ros::spinOnce();
                 rate.sleep();
             }
-            if (abs(current_pos.pose.position.x - waypoints.at(0).x < 0.1) &&
-                abs(current_pos.pose.position.y - waypoints.at(0).y < 0.1) &&
-                abs(current_pos.pose.position.z - waypoints.at(0).z < 0.1)) {
+            if (abs(current_pos.pose.position.x - waypoint.x < 0.1) &&
+                abs(current_pos.pose.position.y - waypoint.y < 0.1) &&
+                abs(current_pos.pose.position.z - waypoint.z < 0.1)) {
                     at_waypoint = true;
             }
         }

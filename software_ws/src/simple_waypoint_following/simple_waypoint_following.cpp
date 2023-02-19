@@ -15,6 +15,8 @@ struct Waypoint {
 	int z;
 };
 
+std::vector<Waypoint> waypoints;
+
 void Waypoint_init(Waypoint* coord, int xval, int yval, int zval) {
 	coord->x = xval;
 	coord->y = yval;
@@ -24,9 +26,15 @@ void Waypoint_init(Waypoint* coord, int xval, int yval, int zval) {
 Waypoint waypoint1;
 Waypoint_init(&waypoint1, 5, 5, 5);
 
-std::vector<Waypoint> waypoints;
+Waypoint waypoint2;
+Waypoint_init(&waypoint1, -10, 5, -5);
+
+Waypoint waypoint3;
+Waypoint_init(&waypoint1, 10, 7, 2);
 
 waypoints.push_back(waypoint1);
+waypoints.push_back(waypoint2);
+waypoints.push_back(waypoint3);
 
 
 mavros_msgs::State current_state;
@@ -122,21 +130,39 @@ int main(int argc, char **argv) {
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
 
-    ROS_INFO("going to the first way point");
-    while (!at_waypoint && ros::ok()) {
-	   if (current_pos.pose.position.x - waypoints.at(0).x > 0.1) {
-		   pose.pose.position.x = waypoints.at(0).x;
-	   }
+
+    for (auto waypoint : waypoints) {
+        bool at_waypoint = false;
+        ROS_INFO("going to next way point");
+        while (!at_waypoint && ros::ok()) {
+            if (abs(current_pos.pose.position.x - waypoints.at(0).x) > 0.1) {
+                pose.pose.position.x = waypoints.at(0).x;
+            }
+            if (abs(current_pos.pose.position.y - waypoints.at(0).y) > 0.1) {
+                pose.pose.position.y = waypoints.at(0).y;
+            }
+            if (abs(current_pos.pose.position.z - waypoints.at(0).z) > 0.1) {
+                pose.pose.position.z = waypoints.at(0).z;
+            }
+            for (int i = 0; ros::ok() && i < 10*20; ++i){
+                local_pos_pub.publish(pose);
+                ros::spinOnce();
+                rate.sleep();
+            }
+            if (abs(current_pos.pose.position.x - waypoints.at(0).x < 0.1) &&
+                abs(current_pos.pose.position.y - waypoints.at(0).y < 0.1) &&
+                abs(current_pos.pose.position.z - waypoints.at(0).z < 0.1)) {
+                    at_waypoint = true;
+            }
+        }
     }
-    for(int i = 0; ros::ok() && i < 10*20; ++i){
-      local_pos_pub.publish(pose);
-      ros::spinOnce();
-      rate.sleep();
+
+    ROS_INFO("trying to land");
+    while (!(land_client.call(land_cmd) &&
+            land_cmd.response.success)){
+        ROS_INFO("trying to land");
+        ros::spinOnce();
+        rate.sleep();
     }
-    ROS_INFO("first way point finished!");
-
-
-
-
 
 }

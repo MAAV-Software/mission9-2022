@@ -152,11 +152,9 @@ int main(int argc, char **argv) {
             if (abs(current_pos.pose.position.z - waypoint.z) > 0.1) {
                 pose.pose.position.z = waypoint.z;
             }
-            for (int i = 0; ros::ok() && i < 10*20; ++i){
-                local_pos_pub.publish(pose);
-                ros::spinOnce();
-                rate.sleep();
-            }
+            local_pos_pub.publish(pose);
+            ros::spinOnce();
+            rate.sleep();
             if (abs(current_pos.pose.position.x - waypoint.x < 0.1) &&
                 abs(current_pos.pose.position.y - waypoint.y < 0.1) &&
                 abs(current_pos.pose.position.z - waypoint.z < 0.1)) {

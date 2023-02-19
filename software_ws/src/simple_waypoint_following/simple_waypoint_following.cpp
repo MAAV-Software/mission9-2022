@@ -36,17 +36,21 @@ int main(int argc, char **argv) {
     std::vector<Waypoint> waypoints;
 
     Waypoint waypoint1;
-    Waypoint_init(&waypoint1, 5, 5, 5);
+    Waypoint_init(&waypoint1, 1, 5, FLIGHT_ALTITUDE);
 
     Waypoint waypoint2;
-    Waypoint_init(&waypoint1, -10, 5, -5);
+    Waypoint_init(&waypoint1, -10, 5, FLIGHT_ALTITUDE);
 
     Waypoint waypoint3;
-    Waypoint_init(&waypoint1, 10, 7, 2);
+    Waypoint_init(&waypoint1, 10, 7, FLIGHT_ALTITUDE);
+
+    Waypoint waypoint3;
+    Waypoint_init(&waypoint1, 0, 0, FLIGHT_ALTITUDE);
 
     waypoints.push_back(waypoint1);
     waypoints.push_back(waypoint2);
     waypoints.push_back(waypoint3);
+    waypoints.push_back(waypoint4);
 
     ros::init(argc, argv, "offb_node");
     ros::NodeHandle nh;

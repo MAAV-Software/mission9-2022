@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
 	    ("mavros/local_position/pose", 10, get_current_pos);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
+    ros::Publisher local_vel_pub = nh.advertise,geometry_msgs::TwistStamped>
+            ("mavros/setpoint_velocity/cmd_vel");
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>
@@ -86,6 +88,11 @@ int main(int argc, char **argv) {
     pose.pose.position.x = 0;
     pose.pose.position.y = 0;
     pose.pose.position.z = FLIGHT_ALTITUDE;
+
+    geometry_msgs::TwistStamped vel;
+    vel.twist.linear.x = 0;
+    vel.twist.linear.y = 0;
+    vel.twist.linear.z = 0;
 
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
@@ -133,25 +140,33 @@ int main(int argc, char **argv) {
         rate.sleep();
     }
 
-        // go to the first waypoint
-    pose.pose.position.x = 0;
-    pose.pose.position.y = 0;
-    pose.pose.position.z = FLIGHT_ALTITUDE;
-
-
+    // traveling
     for (auto waypoint : waypoints) {
         bool at_waypoint = false;
         ROS_INFO("going to next way point");
         while (!at_waypoint && ros::ok()) {
-            if (abs(current_pos.pose.position.x - waypoint.x) > 0.1) {
-                pose.pose.position.x = waypoint.x;
+
+            if ((current_pos.pose.position.x - waypoint.x) > 0.1) {
+                vel.twist.linear.x = -1;
             }
-            if (abs(current_pos.pose.position.y - waypoint.y) > 0.1) {
-                pose.pose.position.y = waypoint.y;
+            if ((current_pos.pose.position.x - waypoint.x) < 0.1) {
+                vel.twist.linear.x = 1;
             }
-            if (abs(current_pos.pose.position.z - waypoint.z) > 0.1) {
-                pose.pose.position.z = waypoint.z;
+
+            if ((current_pos.pose.position.y - waypoint.y) > 0.1) {
+                vel.twist.linear.y = -1;
             }
+            if ((current_pos.pose.position.y - waypoint.y) < 0.1) {
+                vel.twist.linear.y = 1;
+            }
+
+            if ((current_pos.pose.position.z - waypoint.z) > 0.1) {
+                vel.twist.linear.z = -1;
+            }
+            if ((current_pos.pose.position.z - waypoint.z) < 0.1) {
+                vel.twist.linear.z = 1;
+            }
+
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
@@ -163,6 +178,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    // landing
     ROS_INFO("trying to land");
     while (!(land_client.call(land_cmd) &&
             land_cmd.response.success)){

@@ -128,8 +128,12 @@ int main(int argc, char **argv)
 
     // // This effectively takes the four points in camera frame and "pushes" them back by a distance Z_d (desired distance)
     // CREATES: vec_P_d which are the desired 4 corners of the mast in the camera frame --> (u1, v1), (u2, v2), (u3, v3), (u4, v4)
-    double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
-    double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
+    // double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
+    // double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
+    // double X[4] = {0.0, 0, -tagSize, -tagSize};
+    // double Y[4] = {0.0, -tagSize, -tagSize, tagSize};
+    double X[4] = {-tagSize, -tagSize, 0, 0};
+    double Y[4] = {0, tagSize, tagSize, 0};
     std::vector<vpPoint> vec_P, vec_P_d;
 
     for (int i = 0; i < 4; i++) {
@@ -236,7 +240,7 @@ int main(int argc, char **argv)
 
     ros::Time last_request = ros::Time::now();
 
-    //change to offboard mode and arm
+    // change to offboard mode and arm
     while(ros::ok() && !current_state.armed){
         if( current_state.mode != "OFFBOARD" &&
             (ros::Time::now() - last_request > ros::Duration(5.0))){
@@ -304,7 +308,7 @@ int main(int argc, char **argv)
             // target.velocity.y = 0;
             // target.velocity.z = 0; 
             
-            TODO: local_pos_pub.publish(target);
+            //TODO: local_pos_pub.publish(target);
             ros::spinOnce();
             rate.sleep();
             continue;
@@ -337,6 +341,13 @@ int main(int argc, char **argv)
         }
         //make sure the elements are clockwise
         std::swap(vec_P[2], vec_P[3]);
+
+        // //shift my one
+        // vec_P.push_back(vec_P[0]);
+        // vec_P.erase(vec_P.begin());
+
+
+        
         // Update Current moments
         cout << 2 << endl;
 

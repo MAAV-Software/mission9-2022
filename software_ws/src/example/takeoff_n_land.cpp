@@ -63,6 +63,9 @@ using namespace std;
 
 #define FLIGHT_ALTITUDE 1.5f
 
+
+bool does_spin = true;
+
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
@@ -92,9 +95,10 @@ int main(int argc, char **argv)
 
     // //MARK - Set up Visual Servoing
     vpServo task; // Visual servoing taskZdf
-    vpCameraParameters cam(565.6, 565.6, 320.5, 240.5);
+    //vpCameraParameters cam(565.6, 565.6, 320.5, 240.5);
+    vpCameraParameters cam(565.6, 565.6, 240.5, 320.5);
   
-    //double lambda = 0.5;
+    // double lambda = 0.5;
     vpAdaptiveGain lambda = vpAdaptiveGain(1.5, 0.7, 30);
     task.setServo(vpServo::EYEINHAND_L_cVe_eJe);
     task.setInteractionMatrixType(vpServo::CURRENT);
@@ -106,8 +110,10 @@ int main(int argc, char **argv)
     vpRotationMatrix c1Rc2(c1_rxyz_c2);
     vpHomogeneousMatrix c1Mc2(vpTranslationVector(), c1Rc2); //Homo matrix from c1 to c2
 
-    vpRotationMatrix c1Re{0, 1, 0, 0, 0, 1, 1, 0, 0};
-    vpTranslationVector c1te(0, 0, 0); // TODO: Add translation vector 
+    // vpRotationMatrix c1Re{0, 1, 0, 0, 0, 1, 1, 0, 0};
+    // vpTranslationVector c1te(0, 0, 0); // TODO: Add translation vector 0, -0.03, -0.07
+    vpRotationMatrix c1Re{0, -1, 0, 0, 0, -1, 1, 0, 0};
+    vpTranslationVector c1te(0, -0.03, -0.07); // TODO: Add translation vector 0
     vpHomogeneousMatrix c1Me(c1te, c1Re);
 
     vpHomogeneousMatrix c2Me = c1Mc2.inverse() * c1Me;
@@ -115,32 +121,33 @@ int main(int argc, char **argv)
     
     task.set_cVe(cVe); // TODO- See if this is actually needed 
     
-
     vpMatrix eJe(6, 4, 0);
 
     eJe[0][0] = 1;
-    eJe[1][1] = 1;
-    eJe[2][2] = 1;
-    eJe[5][3] = 1;
+    eJe[1][2] = 1;
+    eJe[2][1] = 1;
+    eJe[4][3] = 1;
 
     //Desired distance to the target
     double Z_d = 1.5;
 
     // // This effectively takes the four points in camera frame and "pushes" them back by a distance Z_d (desired distance)
     // CREATES: vec_P_d which are the desired 4 corners of the mast in the camera frame --> (u1, v1), (u2, v2), (u3, v3), (u4, v4)
-    // double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
-    // double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
+    double X[4] = {tagSize / 2., tagSize / 2., -tagSize / 2., -tagSize / 2.};
+    double Y[4] = {tagSize / 2., -tagSize / 2., -tagSize / 2., tagSize / 2.};
     // double X[4] = {0.0, 0, -tagSize, -tagSize};
     // double Y[4] = {0.0, -tagSize, -tagSize, tagSize};
-    double X[4] = {-tagSize, -tagSize, 0, 0};
-    double Y[4] = {0, tagSize, tagSize, 0};
+    // double X[4] = {-tagSize, -tagSize, 0, 0};
+    // double Y[4] = {0, tagSize, tagSize, 0};
     std::vector<vpPoint> vec_P, vec_P_d;
 
+    std::cout << "DESIRED POINTS: " << std::endl;
     for (int i = 0; i < 4; i++) {
         vpPoint P_d(X[i], Y[i], 0); 
         vpHomogeneousMatrix cdMo(0, 0, Z_d, 0, 0, 0);
         P_d.track(cdMo); //fj 
         vec_P_d.push_back(P_d);
+        std::cout << P_d.get_x() << " " << P_d.get_y() << std::endl;
     }
 
     vpMomentObject m_obj(3), m_obj_d(3);    //m_obj is some polygon object that is initialized of some vector of points of the mast
@@ -205,11 +212,14 @@ int main(int argc, char **argv)
     // //END - Ended setting up visual servoing
 
     // wait for FCU connection
-    while(ros::ok() && current_state.connected){
-        ros::spinOnce();
-        rate.sleep();
-        ROS_INFO("connecting to FCT..."); 
+    if (does_spin){
+        while(ros::ok() && current_state.connected){
+            ros::spinOnce();
+            rate.sleep();
+            ROS_INFO("connecting to FCT..."); 
+        }
     }
+    
 
     mavros_msgs::PositionTarget target;
     target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_VX | target.IGNORE_VY | target.IGNORE_VZ | target.IGNORE_YAW_RATE;
@@ -220,11 +230,14 @@ int main(int argc, char **argv)
 
 
     //send a few setpoints before starting
+    if (does_spin){
     for(int i = 100; ros::ok() && i > 0; --i){
         local_pos_pub.publish(target);
         ros::spinOnce();
         rate.sleep();
+    }    
     }
+    
 
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
@@ -240,7 +253,8 @@ int main(int argc, char **argv)
 
     ros::Time last_request = ros::Time::now();
 
-    // change to offboard mode and arm
+    //change to offboard mode and arm
+    if (does_spin){
     while(ros::ok() && !current_state.armed){
         if( current_state.mode != "OFFBOARD" &&
             (ros::Time::now() - last_request > ros::Duration(5.0))){
@@ -264,11 +278,13 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate.sleep();
     }
+    }
 
     //Start the image stuff
     ImageConverter ic;
 
     //                                                          MARK THIS HOVERS IN PLACE
+    if (does_spin){
     // go to the first waypoint
     target.position.x = 0;
     target.position.y = 0;
@@ -280,7 +296,8 @@ int main(int argc, char **argv)
       ros::spinOnce();
       rate.sleep();
     }
-    //                                                         END MARK THIS HOVERS IN PLACE
+    }
+    //                                                        END MARK THIS HOVERS IN PLACE
 
 
     // ROS_INFO("first way point finished!");
@@ -337,6 +354,7 @@ int main(int argc, char **argv)
             P.set_x(x);
             P.set_y(y);
             vec_P.push_back(P);
+            cout << visp_mast_points[i] << endl;
             cout << P.get_x() << " " << P.get_y() << endl;
         }
         //make sure the elements are clockwise
@@ -388,11 +406,12 @@ int main(int argc, char **argv)
         std::cout << "CURRENT FEATURES:" << std::endl;
         s_mgn.print();
         s_man.print();
-
-        s_vp.setAtanOneOverRho(0);
-
+        //cout << 
         cerr << s_vp.getAtanOneOverRho() << ", ";
         cout << endl;
+
+        //s_vp.setAtanOneOverRho(0);
+        //s_vp.setAtanOneOverRho(0.000);
 
         std::cout << "DESIERD FEATURES" << endl;
         s_mgn_d.print();
@@ -413,37 +432,32 @@ int main(int argc, char **argv)
 
     
         //Command the robo
-        target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
+        target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW;
         target.coordinate_frame = 1;
+        // target.velocity.x = ve[0];
+        // target.velocity.y = -ve[2];
+        // target.velocity.z = -ve[1];
         target.velocity.x = ve[0];
-        target.velocity.y = -ve[2];
-        target.velocity.z = -ve[1];
-        local_pos_pub.publish(target);
+        target.velocity.y = ve[1];
+        target.velocity.z = ve[2];
+        target.yaw_rate = -ve[3];
+        if (does_spin){
+            local_pos_pub.publish(target);
+        }
         ros::spinOnce();
         rate.sleep();
+
+        /*
+        NOTE:
+        coordinate_frame = 1 --> FRAME_LOCAL_NED
+        X = Forward
+        Y = Left
+        Z = Upwards
+        */
     }
 
 
-    // target.type_mask = target.IGNORE_AFX | target.IGNORE_AFY | target.IGNORE_AFZ | target.IGNORE_PX | target.IGNORE_PY | target.IGNORE_PZ | target.IGNORE_YAW_RATE;
-    // while (true){
-    //     cout << "X err --> "<< ic.get_x_offset() << "| Y err --> " << ic.get_y_offset() << endl;
-    //     int x_err = ic.get_x_offset();
-    //     int y_err = ic.get_y_offset();
-
-    //     double K_P = 0.01;
-
-    //     target.velocity.x = 0;//
-    //     //target.velocity.y = -x_err * K_P; 
-    //     target.velocity.y = x_err < 0 ?  max(-x_err * K_P, -0.05) : min(-x_err * K_P, 0.05);
-    //     //target.velocity.z = -1*y_err * K_P;
-    //     target.velocity.z = y_err < 0 ?  max(-y_err * K_P, -0.05) : min(-y_err * K_P, 0.05);
-    //     target.coordinate_frame = 1;
-    //     cout << "Y velocity: " << x_err * K_P << endl;
-
-    //     local_pos_pub.publish(target);
-    //     ros::spinOnce();
-    //     rate.sleep();
-    // }
+   
     
 
     return 0;

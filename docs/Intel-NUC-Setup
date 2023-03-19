@@ -1,0 +1,13 @@
+# Intel NUC Setup
+
+1. Plug in MAAV Linksys router
+2. Setup NUC: 
+   a. Keyboard, HDMI cable, etc.
+   b. Hook up NUC's wifi to routers wifi (e.g. "maav-linksys-5GHz")
+3. Connect your local machine to same wifi
+4. Find IP address of NUC: 
+    a. Option1: log in manually to NUC, (username='maav', password='get pwnd'). Run ipconfig and the IP address is the one listed under wlp58s0 header, labelled 'inet'.
+    b. Use nmap on your computer with syntax: like nmap -s "192.168.*.*.* to find ip address
+5. SHH into NUC by typing: 
+    a. ssh maav@<ip_address> 
+    b. password same as above: 'get pwnd'

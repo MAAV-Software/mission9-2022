@@ -143,12 +143,12 @@ int main(int argc, char **argv) {
 
     // traveling
     for (auto waypoint : waypoints) {
-        bool at_waypoint = false;
         ROS_INFO("going to next way point");
-        while (!at_waypoint && ros::ok()) {
-            pose.pose.position.x = waypoint.x;
-            pose.pose.position.y = waypoint.y;
-            pose.pose.position.z = waypoint.z;
+        pose.pose.position.x = waypoint.x;
+        pose.pose.position.y = waypoint.y;
+        pose.pose.position.z = waypoint.z;
+        bool at_waypoint = false;
+        while (!at_waypoint) {
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();

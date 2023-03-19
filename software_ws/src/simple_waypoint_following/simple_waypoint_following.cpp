@@ -146,34 +146,15 @@ int main(int argc, char **argv) {
         bool at_waypoint = false;
         ROS_INFO("going to next way point");
         while (!at_waypoint && ros::ok()) {
-
-            if ((current_pos.pose.position.x - waypoint.x) > 0.1) {
-                vel.twist.linear.x = -5;
-            }
-            if ((current_pos.pose.position.x - waypoint.x) < 0.1) {
-                vel.twist.linear.x = 5;
-            }
-
-            if ((current_pos.pose.position.y - waypoint.y) > 0.1) {
-                vel.twist.linear.y = -5;
-            }
-            if ((current_pos.pose.position.y - waypoint.y) < 0.1) {
-                vel.twist.linear.y = 5;
-            }
-
-            if ((current_pos.pose.position.z - waypoint.z) > 0.1) {
-                vel.twist.linear.z = -5;
-            }
-            if ((current_pos.pose.position.z - waypoint.z) < 0.1) {
-                vel.twist.linear.z = 5;
-            }
-
+            pose.pose.position.x = waypoint.x;
+            pose.pose.position.y = waypoint.y;
+            pose.pose.position.z = waypoint.z;
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
-            if (abs(current_pos.pose.position.x - waypoint.x) < 0.1 &&
-                abs(current_pos.pose.position.y - waypoint.y) < 0.1 &&
-                abs(current_pos.pose.position.z - waypoint.z) < 0.1) {
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.01 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.01 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.01) {
                     at_waypoint = true;
             }
         }

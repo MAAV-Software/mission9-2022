@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     eJe[0][0] = 1;
     eJe[1][2] = 1;
     eJe[2][1] = 1;
-    eJe[4][3] = 1;
+    eJe[4][3] = -1;
 
     //Desired distance to the target
     double Z_d = 1.5;
@@ -440,7 +440,7 @@ int main(int argc, char **argv)
         target.velocity.x = ve[0];
         target.velocity.y = ve[1];
         target.velocity.z = ve[2];
-        target.yaw_rate = -ve[3];
+        target.yaw_rate = ve[3];
         if (does_spin){
             local_pos_pub.publish(target);
         }

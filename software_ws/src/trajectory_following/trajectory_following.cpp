@@ -50,6 +50,7 @@ void travel_in_circle(Waypoint endpoint, bool clockwise) {
                            ((endpoint.z + current_pos.pose.position.z) / 2.0));
 
     // pos publisher for this scope
+    ros::NodeHandle nh;
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
     geometry_msgs::PoseStamped pose;
@@ -60,7 +61,7 @@ void travel_in_circle(Waypoint endpoint, bool clockwise) {
         Waypoint interm_waypoint;
         Waypoint_init(&interm_waypoint, cos(i) * radius + center.x, 
                       sin(i) * radius + center.y, height_increment * i + starting_height);
-        ROS_INFO("going to " +  i + " way point");
+        ROS_INFO("going to next way point");
         bool close_to_waypoint = false;
         while (!close_to_waypoint) {
             pose.pose.position.x = interm_waypoint.x;

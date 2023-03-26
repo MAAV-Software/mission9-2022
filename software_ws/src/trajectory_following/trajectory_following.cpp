@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
 
     Waypoint test1;
     Waypoint_init(&test1, 10, 10, FLIGHT_ALTITUDE);
-    travel_in_circle(test1, pose, false);
+    travel_in_circle(test1, false);
 
     // traveling
     // for (auto waypoint : waypoints) {

@@ -202,3 +202,6 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(trajectory_following trajectory_following.cpp)
+target_link_libraries(trajectory_following ${catkin_LIBRARIES})

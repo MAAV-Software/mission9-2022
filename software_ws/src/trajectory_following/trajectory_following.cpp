@@ -1,0 +1,244 @@
+#include <ros/ros.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <mavros_msgs/CommandBool.h>
+#include <mavros_msgs/CommandTOL.h>
+#include <mavros_msgs/SetMode.h>
+#include <mavros_msgs/State.h>
+#include <vector>
+#include <cmath>
+
+#define FLIGHT_ALTITUDE 1.5f
+
+
+struct Waypoint {
+	int x;
+	int y;
+	int z;
+};
+
+void Waypoint_init(Waypoint* coord, int xval, int yval, int zval) {
+    coord->x = xval;
+    coord->y = yval;
+    coord->z = zval;
+}
+
+
+mavros_msgs::State current_state;
+void state_cb(const mavros_msgs::State::ConstPtr& msg){
+    current_state = *msg;
+}
+
+geometry_msgs::PoseStamped current_pos;
+void get_current_pos(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+	current_pos = *msg;
+}
+
+//travels to endpoint in a semicircular motion
+void travel_in_circle(Wapoint endpoint, 
+                      geometry_msgs::PoseStamped &pose, bool clockwise) {
+    int radius = sqrt(
+                   pow((endpoint.x - current_pos.pose.position.x), 2) + 
+                   pow((endpoint.y - current_pos.pose.position.y), 2)
+                   ) / 2;
+    int starting_height = current_pos.pose.position.z;
+    int height_increment = (endpoint.z - starting_height) / 180;
+    
+    // geometrically, treat waypoint center like origin of unit circle
+    Waypoint center;
+    Waypoint_init(&center, ((endpoint.x + current_pos.pose.position.x) / 2.0), 
+                           ((endpoint.y + current_pos.pose.position.y) / 2.0), 
+                           ((endpoint.z + current_pos.pose.position.z) / 2.0));
+
+    // split path into 180 intermediate waypoints
+    for (int i = 0; i < 180; ++i) {
+        Waypoint interm_waypoint;
+        Waypoint_init(&interm_waypoint, cos(i) * radius + center.x, 
+                      sin(i) * radius + center.y, height_increment * i + starting_height);
+        ROS_INFO("going to " +  i + " way point");
+        bool close_to_waypoint = false;
+        while (!close_to_waypoint) {
+            pose.pose.position.x = interm_waypoint.x;
+            pose.pose.position.y = interm_waypoint.y;
+            pose.pose.position.z = intermwaypoint.z;
+            local_pos_pub.publish(pose);
+            ros::spinOnce();
+            rate.sleep();
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.15 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.15 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.15) {
+                    close_to_waypoint = true;
+            }
+        }
+    }
+}
+
+int main(int argc, char **argv) {
+    std::vector<Waypoint> waypoints;
+
+    Waypoint waypoint1;
+    Waypoint_init(&waypoint1, 0, 0, FLIGHT_ALTITUDE);
+
+    Waypoint waypoint2;
+    Waypoint_init(&waypoint2, 1, 5, FLIGHT_ALTITUDE);
+
+    Waypoint waypoint3;
+    Waypoint_init(&waypoint3, -5, 5, FLIGHT_ALTITUDE);
+
+    Waypoint waypoint4;
+    Waypoint_init(&waypoint4, 5, 7, FLIGHT_ALTITUDE);
+
+    Waypoint waypoint5;
+    Waypoint_init(&waypoint5, 0, 0, FLIGHT_ALTITUDE);
+
+    waypoints.push_back(waypoint1);
+    waypoints.push_back(waypoint2);
+    waypoints.push_back(waypoint3);
+    waypoints.push_back(waypoint4);
+    waypoints.push_back(waypoint5);
+
+    ros::init(argc, argv, "offb_node");
+    ros::NodeHandle nh;
+
+    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
+            ("mavros/state", 10, state_cb);
+    ros::Subscriber local_pos_sub = nh.subscribe<geometry_msgs::PoseStamped>
+	    ("mavros/local_position/pose", 10, get_current_pos);
+    ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
+            ("mavros/setpoint_position/local", 10);
+    ros::Publisher local_vel_pub = nh.advertise<geometry_msgs::TwistStamped>
+            ("mavros/setpoint_velocity/cmd_vel", 10);
+    ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
+            ("mavros/cmd/arming");
+    ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>
+      ("mavros/cmd/land");
+    ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
+            ("mavros/set_mode");
+
+    //the setpoint publishing rate MUST be faster than 2Hz
+    ros::Rate rate(20.0);
+
+    // wait for FCU connection
+    while(ros::ok() && current_state.connected){
+        ros::spinOnce();
+        rate.sleep();
+        ROS_INFO("connecting to FCT...");
+    }
+
+    geometry_msgs::PoseStamped pose;
+    pose.pose.position.x = 0;
+    pose.pose.position.y = 0;
+    pose.pose.position.z = FLIGHT_ALTITUDE;
+
+    geometry_msgs::TwistStamped vel;
+    vel.twist.linear.x = 0;
+    vel.twist.linear.y = 0;
+    vel.twist.linear.z = 0;
+
+    //send a few setpoints before starting
+    for(int i = 100; ros::ok() && i > 0; --i){
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    mavros_msgs::SetMode offb_set_mode;
+    offb_set_mode.request.custom_mode = "OFFBOARD";
+
+    mavros_msgs::CommandBool arm_cmd;
+    arm_cmd.request.value = true;
+
+    mavros_msgs::CommandTOL land_cmd;
+    land_cmd.request.yaw = 0;
+    land_cmd.request.latitude = 0;
+    land_cmd.request.longitude = 0;
+    land_cmd.request.altitude = 0;
+
+    ros::Time last_request = ros::Time::now();
+
+    // change to offboard mode and arm
+    while(ros::ok() && !current_state.armed){
+        if( current_state.mode != "OFFBOARD" &&
+            (ros::Time::now() - last_request > ros::Duration(5.0))){
+          ROS_INFO(current_state.mode.c_str());
+            if( set_mode_client.call(offb_set_mode) &&
+                offb_set_mode.response.mode_sent){
+                ROS_INFO("Offboard enabled");
+            }
+            last_request = ros::Time::now();
+        } else {
+            if( !current_state.armed &&
+                (ros::Time::now() - last_request > ros::Duration(5.0))){
+                if( arming_client.call(arm_cmd) &&
+                    arm_cmd.response.success){
+                    ROS_INFO("Vehicle armed");
+                }
+                last_request = ros::Time::now();
+            }
+        }
+        local_pos_pub.publish(pose);
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    Waypoint test1;
+    Waypoint_init(&test1, 10, 10, FLIGHT_ALTITUDE);
+    travel_in_circle(test1, pose, false);
+
+    // traveling
+    // for (auto waypoint : waypoints) {
+    //     ROS_INFO("going to next way point");
+    //     bool close_to_waypoint = false;
+    //     while (!close_to_waypoint) {
+    //         pose.pose.position.x = waypoint.x;
+    //         pose.pose.position.y = waypoint.y;
+    //         pose.pose.position.z = waypoint.z;
+    //         local_pos_pub.publish(pose);
+    //         ros::spinOnce();
+    //         rate.sleep();
+    //         if (abs(current_pos.pose.position.x - waypoint.x) < 0.15 &&
+    //             abs(current_pos.pose.position.y - waypoint.y) < 0.15 &&
+    //             abs(current_pos.pose.position.z - waypoint.z) < 0.15) {
+    //                 close_to_waypoint = true;
+    //         }
+    //     }
+    //     bool very_close_to_waypoint = false;
+    //     while (!very_close_to_waypoint) {
+    //         pose.pose.position.x = waypoint.x;
+    //         pose.pose.position.y = waypoint.y;
+    //         pose.pose.position.z = waypoint.z;
+    //         local_pos_pub.publish(pose);
+    //         ros::spinOnce();
+    //         rate.sleep();
+    //         if (abs(current_pos.pose.position.x - waypoint.x) < 0.07 &&
+    //             abs(current_pos.pose.position.y - waypoint.y) < 0.07 &&
+    //             abs(current_pos.pose.position.z - waypoint.z) < 0.07) {
+    //                 very_close_to_waypoint = true;
+    //         }
+    //     }
+    //     bool very_very_close_to_waypoint = false;
+    //     while (!very_very_close_to_waypoint) {
+    //         pose.pose.position.x = waypoint.x;
+    //         pose.pose.position.y = waypoint.y;
+    //         pose.pose.position.z = waypoint.z;
+    //         local_pos_pub.publish(pose);
+    //         ros::spinOnce();
+    //         rate.sleep();
+    //         if (abs(current_pos.pose.position.x - waypoint.x) < 0.035 &&
+    //             abs(current_pos.pose.position.y - waypoint.y) < 0.035 &&
+    //             abs(current_pos.pose.position.z - waypoint.z) < 0.035) {
+    //                 very_very_close_to_waypoint = true;
+    //         }
+    //     }
+    // }
+
+    // landing
+    ROS_INFO("trying to land");
+    while (!(land_client.call(land_cmd) &&
+            land_cmd.response.success)){
+        ROS_INFO("trying to land");
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+}

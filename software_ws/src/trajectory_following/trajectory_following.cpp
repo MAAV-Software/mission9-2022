@@ -35,8 +35,7 @@ void get_current_pos(const geometry_msgs::PoseStamped::ConstPtr& msg) {
 }
 
 //travels to endpoint in a semicircular motion
-void travel_in_circle(Waypoint endpoint, 
-                      geometry_msgs::PoseStamped &pose, bool clockwise) {
+void travel_in_circle(Waypoint endpoint, bool clockwise) {
     int radius = sqrt(
                    pow((endpoint.x - current_pos.pose.position.x), 2) + 
                    pow((endpoint.y - current_pos.pose.position.y), 2)
@@ -49,6 +48,11 @@ void travel_in_circle(Waypoint endpoint,
     Waypoint_init(&center, ((endpoint.x + current_pos.pose.position.x) / 2.0), 
                            ((endpoint.y + current_pos.pose.position.y) / 2.0), 
                            ((endpoint.z + current_pos.pose.position.z) / 2.0));
+
+    // pos publisher for this scope
+    ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
+            ("mavros/setpoint_position/local", 10);
+    geometry_msgs::PoseStamped pose;
 
     // split path into 180 intermediate waypoints
     for (int i = 0; i < 180; ++i) {

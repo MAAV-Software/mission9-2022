@@ -60,13 +60,13 @@ void travel_in_circle(Waypoint endpoint,
         while (!close_to_waypoint) {
             pose.pose.position.x = interm_waypoint.x;
             pose.pose.position.y = interm_waypoint.y;
-            pose.pose.position.z = intermwaypoint.z;
+            pose.pose.position.z = interm_waypoint.z;
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
-            if (abs(current_pos.pose.position.x - waypoint.x) < 0.15 &&
-                abs(current_pos.pose.position.y - waypoint.y) < 0.15 &&
-                abs(current_pos.pose.position.z - waypoint.z) < 0.15) {
+            if (abs(current_pos.pose.position.x - interm_waypoint.x) < 0.15 &&
+                abs(current_pos.pose.position.y - interm_waypoint.y) < 0.15 &&
+                abs(current_pos.pose.position.z - interm_waypoint.z) < 0.15) {
                     close_to_waypoint = true;
             }
         }

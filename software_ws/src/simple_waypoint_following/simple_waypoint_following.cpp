@@ -166,10 +166,24 @@ int main(int argc, char **argv) {
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
-            if (abs(current_pos.pose.position.x - waypoint.x) < 0.03 &&
-                abs(current_pos.pose.position.y - waypoint.y) < 0.03 &&
-                abs(current_pos.pose.position.z - waypoint.z) < 0.03) {
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.07 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.07 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.07) {
                     very_close_to_waypoint = true;
+            }
+        }
+        bool very_very_close_to_waypoint = false;
+        while (!very_very_close_to_waypoint) {
+            pose.pose.position.x = waypoint.x;
+            pose.pose.position.y = waypoint.y;
+            pose.pose.position.z = waypoint.z;
+            local_pos_pub.publish(pose);
+            ros::spinOnce();
+            rate.sleep();
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.015 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.015 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.015) {
+                    very_very_close_to_waypoint = true;
             }
         }
     }

@@ -180,9 +180,9 @@ int main(int argc, char **argv) {
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
-            if (abs(current_pos.pose.position.x - waypoint.x) < 0.015 &&
-                abs(current_pos.pose.position.y - waypoint.y) < 0.015 &&
-                abs(current_pos.pose.position.z - waypoint.z) < 0.015) {
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.035 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.035 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.035) {
                     very_very_close_to_waypoint = true;
             }
         }

@@ -53,6 +53,7 @@ void travel_in_circle(Waypoint endpoint, bool clockwise) {
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("mavros/setpoint_position/local", 10);
     geometry_msgs::PoseStamped pose;
+    ros::Rate rate(20.0);
 
     // split path into 180 intermediate waypoints
     for (int i = 0; i < 180; ++i) {

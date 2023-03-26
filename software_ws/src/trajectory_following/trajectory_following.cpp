@@ -35,7 +35,7 @@ void get_current_pos(const geometry_msgs::PoseStamped::ConstPtr& msg) {
 }
 
 //travels to endpoint in a semicircular motion
-void travel_in_circle(Wapoint endpoint, 
+void travel_in_circle(Waypoint endpoint, 
                       geometry_msgs::PoseStamped &pose, bool clockwise) {
     int radius = sqrt(
                    pow((endpoint.x - current_pos.pose.position.x), 2) + 

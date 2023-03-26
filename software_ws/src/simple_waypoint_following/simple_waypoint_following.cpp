@@ -144,17 +144,17 @@ int main(int argc, char **argv) {
     // traveling
     for (auto waypoint : waypoints) {
         ROS_INFO("going to next way point");
-        pose.pose.position.x = waypoint.x;
-        pose.pose.position.y = waypoint.y;
-        pose.pose.position.z = waypoint.z;
         bool at_waypoint = false;
         while (!at_waypoint) {
+            pose.pose.position.x = waypoint.x;
+            pose.pose.position.y = waypoint.y;
+            pose.pose.position.z = waypoint.z;
             local_pos_pub.publish(pose);
             ros::spinOnce();
             rate.sleep();
-            if (abs(current_pos.pose.position.x - waypoint.x) < 0.01 &&
-                abs(current_pos.pose.position.y - waypoint.y) < 0.01 &&
-                abs(current_pos.pose.position.z - waypoint.z) < 0.01) {
+            if (abs(current_pos.pose.position.x - waypoint.x) < 0.15 &&
+                abs(current_pos.pose.position.y - waypoint.y) < 0.15 &&
+                abs(current_pos.pose.position.z - waypoint.z) < 0.15) {
                     at_waypoint = true;
             }
         }

@@ -48,9 +48,10 @@ public:
     : it_(nh_), TL_filter(num_in_queue), TR_filter(num_in_queue), BL_filter(num_in_queue), BR_filter(num_in_queue)
   {
     // Subscrive to input video feed and publish output video feed
-    image_sub_ = it_.subscribe("/camera/rgb/image_raw", 1,
+    //For simulated camera -- > /camera/rgb/image_raw
+    image_sub_ = it_.subscribe("/camera/color/image_raw", 1,
       &ImageConverter::imageCb, this);
-    depth_image_sub_ = it_.subscribe("/camera/depth/image_raw", 1,
+    depth_image_sub_ = it_.subscribe("/camera/aligned_depth_to_color/image_raw", 1,
       &ImageConverter::depthImageCb, this);
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
 
@@ -95,7 +96,7 @@ public:
     cv_bridge::CvImagePtr cv_ptr;
     try
     {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -103,13 +104,15 @@ public:
       return;
     }
 
-    double MAX_DISTANCE_THRESHOLD = 5.0; // in meters
+    double MAX_DISTANCE_THRESHOLD = 1000.0; // in milimeters
 
     //Set the depth mask
     cv::Mat image = cv_ptr->image;
+    std::cout << "First pixel: " << image.at<unsigned short>(0,0) << std::endl;
+
 
     
-    inRange(image, 0, MAX_DISTANCE_THRESHOLD, this->depth_mask);
+    inRange(image, 10, MAX_DISTANCE_THRESHOLD, this->depth_mask);
 
     has_depth_mask = true;
 
@@ -300,7 +303,10 @@ public:
     cv::Mat depth_thresh_image = PerformDepthThresholding(image, verbose);
 
     // 2. Do HSV thresholding
-    cv::Mat hsv_thresh_image = PerformHSVThresholding(depth_thresh_image, verbose);
+    cv::Mat in_img = depth_thresh_image; //depth_thresh_image; or imag;
+    cv::Mat hsv_thresh_image = PerformHSVThresholding(in_img, verbose);
+    cv::imshow("hsv thresh Image", hsv_thresh_image);
+    cv::waitKey(3);
 
     bool should_crop = false;
     if (should_crop){
@@ -392,8 +398,13 @@ public:
 
     // Run our algorithm on the image...
     try{
-      RunAlgorithm(image, false);
-    }catch(std::runtime_error e){
+      bool verbose = true;
+      //Imshow the image
+      //std::cout << "recieved an image" << std::endl;
+      // cv::imshow("image:", image);
+      // cv::waitKey(1);
+      RunAlgorithm(image, verbose);
+    }catch(std::runtime_error e) {
       std::cout << e.what() << std::endl;
     }
     

@@ -212,6 +212,7 @@ int main(int argc, char **argv)
     // //END - Ended setting up visual servoing
 
     // wait for FCU connection
+    std::cout << 2 << std::endl;
     if (does_spin){
         while(ros::ok() && current_state.connected){
             ros::spinOnce();
@@ -219,6 +220,7 @@ int main(int argc, char **argv)
             ROS_INFO("connecting to FCT..."); 
         }
     }
+    std::cout << 3 << std::endl;
     
 
     mavros_msgs::PositionTarget target;
@@ -231,12 +233,13 @@ int main(int argc, char **argv)
 
     //send a few setpoints before starting
     if (does_spin){
-    for(int i = 100; ros::ok() && i > 0; --i){
-        local_pos_pub.publish(target);
-        ros::spinOnce();
-        rate.sleep();
-    }    
+        for(int i = 100; ros::ok() && i > 0; --i){
+            local_pos_pub.publish(target);
+            ros::spinOnce();
+            rate.sleep();
+        }    
     }
+    std::cout << 4 << std::endl;
     
 
     mavros_msgs::SetMode offb_set_mode;
@@ -254,6 +257,7 @@ int main(int argc, char **argv)
     ros::Time last_request = ros::Time::now();
 
     //change to offboard mode and arm
+    std::cout << 5 << std::endl;
     if (does_spin){
     while(ros::ok() && !current_state.armed){
         if( current_state.mode != "OFFBOARD" &&
@@ -279,6 +283,7 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     }
+    std::cout << 6 << std::endl;
 
     //Start the image stuff
     ImageConverter ic;

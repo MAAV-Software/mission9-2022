@@ -5,4 +5,4 @@ Description: Description of example
 Version: 0.0.0
 Cflags: 
 Libs: -L${prefix}/lib 
-Requires: 
+Requires: cv_bridge image_transport std_msgs

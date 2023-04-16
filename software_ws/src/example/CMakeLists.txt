@@ -9,6 +9,19 @@ project(example)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   mavros
+  cv_bridge
+  image_transport
+  std_msgs
+#  visp
+)
+
+find_package(VISP REQUIRED
+  visp_core
+  visp_mbt 
+  visp_io 
+  visp_gui 
+  visp_sensor
+  visp_vs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,6 +118,8 @@ catkin_package(
 #  LIBRARIES example
 #  CATKIN_DEPENDS mavros
 #  DEPENDS system_lib
+  CATKIN_DEPENDS cv_bridge image_transport std_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -116,6 +131,8 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${VISP_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -204,4 +221,16 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(takeoff_n_land takeoff_n_land.cpp)
-target_link_libraries(takeoff_n_land ${catkin_LIBRARIES})
+target_link_libraries(takeoff_n_land ${catkin_LIBRARIES} ${VISP_LIBRARIES} ${OpenCV_Include_DIRS})
+
+add_executable(mast_mover mast_mover.cpp)
+target_link_libraries(mast_mover ${catkin_LIBRARIES})
+
+add_executable(ball_mover ball_mover.cpp)
+target_link_libraries(ball_mover ${catkin_LIBRARIES})
+
+add_executable(reset_mast_position reset_mast_position.cpp)
+target_link_libraries(reset_mast_position ${catkin_LIBRARIES})
+
+add_executable(canny_edge_sol canny_edge_sol.cpp)
+target_link_libraries(canny_edge_sol ${catkin_LIBRARIES} ${OpenCV_Include_DIRS})

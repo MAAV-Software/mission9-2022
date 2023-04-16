@@ -223,5 +223,14 @@ include_directories(
 add_executable(takeoff_n_land takeoff_n_land.cpp)
 target_link_libraries(takeoff_n_land ${catkin_LIBRARIES} ${VISP_LIBRARIES} ${OpenCV_Include_DIRS})
 
+add_executable(mast_mover mast_mover.cpp)
+target_link_libraries(mast_mover ${catkin_LIBRARIES})
+
+add_executable(ball_mover ball_mover.cpp)
+target_link_libraries(ball_mover ${catkin_LIBRARIES})
+
+add_executable(reset_mast_position reset_mast_position.cpp)
+target_link_libraries(reset_mast_position ${catkin_LIBRARIES})
+
 add_executable(canny_edge_sol canny_edge_sol.cpp)
 target_link_libraries(canny_edge_sol ${catkin_LIBRARIES} ${OpenCV_Include_DIRS})

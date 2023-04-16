@@ -65,6 +65,7 @@ using namespace std;
 
 
 bool does_spin = true;
+bool camera_in_simulation = true;
 
 mavros_msgs::State current_state;
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
@@ -286,21 +287,21 @@ int main(int argc, char **argv)
     std::cout << 6 << std::endl;
 
     //Start the image stuff
-    ImageConverter ic;
+    ImageConverter ic(camera_in_simulation);
 
     //                                                          MARK THIS HOVERS IN PLACE
     if (does_spin){
-    // go to the first waypoint
-    target.position.x = 0;
-    target.position.y = 0;
-    target.position.z = FLIGHT_ALTITUDE;
+        // go to the first waypoint
+        target.position.x = 0;
+        target.position.y = 0;
+        target.position.z = FLIGHT_ALTITUDE;
 
-    ROS_INFO("going to the first way point");
-    for(int i = 0; ros::ok() && i < 200; ++i){
-      local_pos_pub.publish(target);
-      ros::spinOnce();
-      rate.sleep();
-    }
+        ROS_INFO("going to the first way point");
+        for(int i = 0; ros::ok() && i < 200; ++i){
+        local_pos_pub.publish(target);
+        ros::spinOnce();
+        rate.sleep();
+        }
     }
     //                                                        END MARK THIS HOVERS IN PLACE
 

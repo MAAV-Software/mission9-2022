@@ -30,6 +30,7 @@ class ImageConverter
   bool has_depth_mask = false;
   int x_offset = 0;
   int y_offset = 0;
+  bool is_simulated = false;
   vector<cv::Point> myCorners{cv::Point(-1, -1), cv::Point(-1, -1), cv::Point(-1, -1), cv::Point(-1, -1)};
   // cv::Point my_TR_corner = cv::Point(-1, -1);
   // cv::Point my_TL_corner = cv::Point(-1, -1);;
@@ -44,15 +45,18 @@ class ImageConverter
   
 
 public:
-  ImageConverter()
-    : it_(nh_), TL_filter(num_in_queue), TR_filter(num_in_queue), BL_filter(num_in_queue), BR_filter(num_in_queue)
+  ImageConverter(bool my_is_simulated = false)
+    : it_(nh_), TL_filter(num_in_queue), TR_filter(num_in_queue), BL_filter(num_in_queue), BR_filter(num_in_queue), is_simulated(my_is_simulated)
   {
     // Subscrive to input video feed and publish output video feed
-    //For simulated camera -- > /camera/rgb/image_raw
-    image_sub_ = it_.subscribe("/camera/color/image_raw", 1,
-      &ImageConverter::imageCb, this);
-    depth_image_sub_ = it_.subscribe("/camera/aligned_depth_to_color/image_raw", 1,
-      &ImageConverter::depthImageCb, this);
+    if (my_is_simulated){
+      image_sub_ = it_.subscribe("/camera/rgb/image_raw", 1, &ImageConverter::imageCb, this);
+      depth_image_sub_ = it_.subscribe("/camera/depth/image_raw", 1, &ImageConverter::depthImageCb, this);
+    }else{
+      image_sub_ = it_.subscribe("/camera/color/image_raw", 1, &ImageConverter::imageCb, this);
+      depth_image_sub_ = it_.subscribe("/camera/aligned_depth_to_color/image_raw", 1, &ImageConverter::depthImageCb, this);
+    }
+    
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
 
     // cv::namedWindow("source");
@@ -94,9 +98,19 @@ public:
 
   void depthImageCb(const sensor_msgs::ImageConstPtr& msg){
     cv_bridge::CvImagePtr cv_ptr;
+    double MAX_DISTANCE_THRESHOLD;
+    double MIN_DISTANCE_THRESHOLD;
     try
     {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      if (is_simulated){
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+        MAX_DISTANCE_THRESHOLD = 5.0; // in meters
+        MIN_DISTANCE_THRESHOLD = 0.0;
+      }else{
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+        MAX_DISTANCE_THRESHOLD = 1000.0; //in milimeters
+        MIN_DISTANCE_THRESHOLD = 10.0;
+      }
     }
     catch (cv_bridge::Exception& e)
     {
@@ -104,18 +118,12 @@ public:
       return;
     }
 
-    double MAX_DISTANCE_THRESHOLD = 1000.0; // in milimeters
-
     //Set the depth mask
     cv::Mat image = cv_ptr->image;
-    std::cout << "First pixel: " << image.at<unsigned short>(0,0) << std::endl;
 
 
-    
-    inRange(image, 10, MAX_DISTANCE_THRESHOLD, this->depth_mask);
-
+    inRange(image, MIN_DISTANCE_THRESHOLD, MAX_DISTANCE_THRESHOLD, this->depth_mask);
     has_depth_mask = true;
-
   }
 
   //Returns a depth thresholded image if there is a depth mask, 
@@ -305,8 +313,11 @@ public:
     // 2. Do HSV thresholding
     cv::Mat in_img = depth_thresh_image; //depth_thresh_image; or imag;
     cv::Mat hsv_thresh_image = PerformHSVThresholding(in_img, verbose);
-    cv::imshow("hsv thresh Image", hsv_thresh_image);
-    cv::waitKey(3);
+    if (verbose){
+      cv::imshow("hsv thresh Image", hsv_thresh_image);
+      cv::waitKey(3);
+    }
+    
 
     bool should_crop = false;
     if (should_crop){
@@ -322,8 +333,10 @@ public:
 
         // 5. Actually Crop the images
         Cropimage(image, hsv_thresh_image, bottommost, topmost, leftmost, rightmost);
-        cv::imshow("Cropped Image", image);
-        cv::waitKey(3);
+        if (verbose){
+          cv::imshow("Cropped Image", image);
+          cv::waitKey(3);
+        }
     }
 
     // 6. Flood Fill
@@ -407,155 +420,7 @@ public:
     }catch(std::runtime_error e) {
       std::cout << e.what() << std::endl;
     }
-    
-
     return;
-
-    /*
-
-    bool resized = false;
-
-    //resize basedd on above values where extreme bues were found
-    cout << leftmost << " " << topmost << " " << rightmost << " " << bottommost << endl;
-    try
-    {
-      mask = mask(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
-      cv::resize(mask, mask, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
-      image = image(cv::Rect(leftmost, topmost, rightmost-leftmost, bottommost-topmost));
-      cv::resize(image, image, Size((rightmost-leftmost)*2, (bottommost-topmost)*2), cv::INTER_LINEAR);
-      resized = true;
-      cv::imshow("Post Depth Thresholding", mask);
-    }
-    catch(...) 
-    {
-      cout << "im unhappy" << endl;
-      return;
-    }
-    
-    // Mat drawing = image;
-    // // Scalar color = Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-    // for( size_t i = 0; i< contours.size(); i++ )
-    // {
-    //     Scalar color = Scalar(0, 255, 0);
-    //     drawContours( drawing, contours, (int)i, color, 2, LINE_8, hierarchy, 0 );
-    // }
-    // cv::imshow("Post Depth Thresholding", drawing);
-    // }
-
-
-    // Canny Edge Detection
-	Mat edges; 
-    //Canny(result, edges, 255/3, 255);
-    Canny(im_out, edges, 255/3, 255);
-    // cv::Mat depth_and_canny = edges;
-    // if (has_depth_mask){
-    //     // Mat depth_result;
-    //     cv::bitwise_and(edges, edges, edges, this->depth_mask);
-    // }
-    //find the bounding lines
-    vector<Vec2f *> myFinalLines;
-    myFinalLines = find_bounding_lines(edges);
-	if (myFinalLines[0] == nullptr || myFinalLines[1] == nullptr || myFinalLines[2] == nullptr || myFinalLines[3] == nullptr){
-        // cv::imshow("source", edges);
-        cv::waitKey(3);
-        sensor_msgs::ImagePtr msg_out = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
-        return;
-	}
-	Vec2f left = *myFinalLines[0];
-    Vec2f top = *myFinalLines[1];
-    Vec2f right = *myFinalLines[2];
-    Vec2f bottom = *myFinalLines[3];
-
-
-    // Display lines for debugging purposes
-    for(int i = 0; i < myFinalLines.size(); i++)
-    {
-        // Vec2f r_theta = lines[i];
-        float r = (*myFinalLines[i])[0], theta = (*myFinalLines[i])[1];
-
-        double a = cos(theta); 
-        double b = sin(theta);
-        double x0 = a*r; 
-        double y0 = b*r;
-        int x1 = int(x0 + 1000*(-b)); 
-        int y1 = int(y0 + 1000*(a));
-        int x2 = int(x0 - 1000*(-b)); 
-        int y2 = int(y0 - 1000*(a));
-        line(image, Point(x1, y1), Point(x2, y2), Scalar(0, 0, 255), 2, LINE_8);
-    }
-    delete myFinalLines[0];
-    delete myFinalLines[1];
-    delete myFinalLines[2];
-    delete myFinalLines[3];
-
-    Point TL_corner = hough_inter(top, left);
-    Point TR_corner = hough_inter(top, right);
-    Point BL_corner = hough_inter(bottom, left);
-    Point BR_corner = hough_inter(bottom, right);
-   
-    
-    circle(image, TL_corner, 10, Scalar(255, 0, 0), FILLED, LINE_8);
-    circle(image, TR_corner, 10, Scalar(255, 0, 0), FILLED, LINE_8);
-    circle(image, BL_corner, 10, Scalar(255, 0, 0), FILLED, LINE_8);
-    circle(image, BR_corner, 10, Scalar(255, 0, 0), FILLED, LINE_8);
-
-
-    // Plot Center 
-    Point center = Point(int((TL_corner.x + TR_corner.x + BL_corner.x + BR_corner.x)/4.0), int((TL_corner.y + TR_corner.y + BL_corner.y + BR_corner.y)/4.0));
-    // circle(image, center, 5, Scalar(0, 120, 255), FILLED, LINE_8);
-
-
-    // Get area
-    double area = quadrilateral_area(TL_corner, TR_corner, BR_corner, BL_corner);
-    
-    // Get offsets
-    int height = image.cols;
-    int width = image.rows;
-    // width, height, _ = image.shape
-    Point image_center = Point(int(height/2), int(width/2));
-    circle(image, image_center, 10, Scalar(255, 255, 0), FILLED, LINE_8);
-
-     //attempting to filter the points to ony use well spaced out ones, points must be at least 100 away
-    int threshold_too_close = 50;
-    if(!(abs(TL_corner.x - TR_corner.x) < threshold_too_close || 
-    abs(TL_corner.y - BL_corner.y) < threshold_too_close || abs(TR_corner.y - BR_corner.y) < threshold_too_close
-    || abs(BL_corner.x - BR_corner.x) < threshold_too_close))
-    {
-      x_offset = center.x - image_center.x;
-      y_offset = center.y - image_center.y;
-      circle(image, center, 5, Scalar(0, 120, 255), FILLED, LINE_8);
-    }
-    // // Get Vanishing Point
-    // Point vanish_pt = hough_inter(top, bottom);
-    
-    // cout << "CONTROL PARAMETERS:";
-    // cout << "  quad area: " << to_string(area) << endl;
-    // cout << "  x offset: " << to_string(x_offset) << endl;
-    // cout << "  y offset: " << to_string(y_offset) << endl;
-    // cout << "  vanish pt: (" << vanish_pt.x << "," << vanish_pt.y << ")";
-
-
-    // Update GUI Window
-    //re downsize image
-    // if(resized){
-    // cv::resize(image, image, Size((rightmost-leftmost)/2, (bottommost-topmost)/2), cv::INTER_LINEAR);
-    // cout << "okay" << endl;
-    // Scalar myColor(0, 0, 255);
-    // cv::copyMakeBorder(image, image, topmost, origBottommost-bottommost, leftmost, origRightmost-rightmost,BORDER_CONSTANT, myColor);
-    // cout << "what" << endl;
-    // }
-    std::cout << "FINISHED ITERATION" << std::endl;
-    cv::imshow("source", image);
-    // cv::imshow("masked", mask);
-
-    cv::waitKey(3);
-    
-    sensor_msgs::ImagePtr msg_out = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
-    // Output modified video stream
-    image_pub_.publish(msg_out);
-
-    */
-    
   }
 
     Point hough_inter(Vec2f line1, Vec2f line2){

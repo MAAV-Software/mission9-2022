@@ -20,7 +20,7 @@ Finally, setup the virtual environment by going through the steps in [this tutor
 - Processors: 2+
 - Video Memory: 50+ MB
 
-Let me (Drew) know if you have any issues with the installation process and we can troubleshoot any issues together!
+Let me (Mehmed) know if you have any issues with the installation process and we can troubleshoot any issues together!
 
 Now you should be able to spin up your very own Ubuntu desktop!
 

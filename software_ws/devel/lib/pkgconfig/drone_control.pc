@@ -1,0 +1,8 @@
+prefix=/mission9-2022/software_ws/devel
+
+Name: drone_control
+Description: Description of drone_control
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

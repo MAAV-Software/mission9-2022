@@ -130,3 +130,18 @@ cmake .. && make -j2 && make install
 #Set some environment variables to get PX4 to build
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
+
+# Install GeographicLib
+echo "Step 11: Installing GeographicLib"
+cd /
+git clone https://github.com/OSGeo/GeographicLib
+mkdir /GeographicLib/build
+cd /GeographicLib/build
+cmake ..
+make
+make install
+
+# Set GeographicLib Environment Variables
+echo 'export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/usr/local/share/GeographicLib/CMake' >> /root/.bashrc
+
+source /root/.bashrc

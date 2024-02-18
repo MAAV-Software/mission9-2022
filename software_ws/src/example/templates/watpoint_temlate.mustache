@@ -1,0 +1,47 @@
+<model name='user_way_Point_{{point10}}'>
+	<static>1</static>
+	<pose>{{x10}} {{y10}} {{z10}} 0 -0 0</pose>
+<link name='link'>
+<gravity>0</gravity>
+	<inertial>
+	<mass>1</mass>
+	<inertia>
+		<ixx>0.0001</ixx>
+		<ixy>0</ixy>
+		<ixz>0</ixz>
+		<iyy>0.0001</iyy>
+		<iyz>0</iyz>
+		<izz>0.0001</izz>
+	</inertia>
+<pose> 0 0 0 0 -0 0</pose>
+</inertial>
+<collision name='collision'>
+	<geometry>
+		<sphere>
+			<radius>7.62</radius>
+		</sphere>
+	</geometry>
+	<surface>
+		<contact>
+			<collide_without_contact>1</collide_without_contact>
+		</contact>
+	</surface>
+</collision>
+<visual name='visual'>
+	<geometry>
+		<sphere>
+			<radius>7.62</radius>
+		</sphere>
+	</geometry>
+	<material>
+		<script>
+			<name>Gazebo/Blue</name>
+			<uri>file://media/materials/scripts/gazebo.material</uri>
+		</script>
+	</material>
+</visual>
+<self_collide>0</self_collide>
+<enable_wind>0</enable_wind>
+<kinematic>0</kinematic>
+</link>
+</model>

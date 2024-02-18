@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<sdf version="1.4">
+    <model name="my_target{{ target_number }}">
+        <pose> {{ x_pose }} {{ y_pose }} .1 0 0 0</pose>
+        <static>true</static>
+        <link name="link">
+            <collision name="collision">
+                <geometry>
+                    <box>
+                        <size>.2159 .2794 0</size>
+                    </box>
+                </geometry>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>100</mu>
+                            <mu2>50</mu2>
+                        </ode>
+                    </friction>
+                </surface>
+            </collision>
+            <visual name="visual">
+                <cast_shadows>false</cast_shadows>
+                <geometry>
+                    <box>
+                        <size>.2159 .2794 0</size>
+                    </box>
+                </geometry>
+                <material>
+                    <script>
+                        <uri>model://target_{{ target_number }}/materials/scripts</uri>
+                        <uri>model://target_{{ target_number }}/materials/textures</uri>
+                        <name>{{ name }}</name>
+                    </script>
+                </material>
+            </visual>
+        </link>
+    </model>
+</sdf>

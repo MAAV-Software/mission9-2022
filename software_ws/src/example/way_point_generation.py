@@ -83,7 +83,7 @@ for i in range(0, len(way_points)):
     x, y = pyproj.transform(source_proj, target_proj, way_points[i][0], way_points[i][1])
     f.write("\t<pose>" + str(x) + " " + str(y) + " " + str(way_points[i][2]) + " 0 -0 0</pose>\n")
     # f.write("\t<pose>" + str(way_points[i][0]*111194.9) + " " + str(way_points[i][1]*111194.9) + " " + str(way_points[i][2]) + " 0 -0 0</pose>\n")
-
+    
     
     # f.write("\t\t\t<ode>\n")
     # f.write("\t\t\t\t<mu>0.00000</mu>\n")

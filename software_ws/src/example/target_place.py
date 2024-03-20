@@ -38,6 +38,7 @@ while len(drop_points) < 6: # generates 5 random points within boundary
 # print(drop_points)
 
 
+
 #generate the 5 materials
 random.seed(42) 
 for i in range(0, 5):

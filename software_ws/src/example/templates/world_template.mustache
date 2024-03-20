@@ -160,3 +160,74 @@
 <include>
 	<uri>model://target_5</uri>
 </include>
+<model name="drop_boundary">
+    <static>true</static>
+    <link name="line1">
+      <visual name="visual_line1">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>21.366</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+	  <pose>10 0 0 0 1.5708 0 </pose>
+    </link>
+	<link name="line2">
+      <visual name="visual_line2">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>109.728</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+	  <pose>31.366 0 0 1.5708 0 0 </pose>
+    </link>
+	<link name="line3">
+      <visual name="visual_line3">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>21.366</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+	  <pose>31.366 109.728 0 0 -1.5708 0 </pose>
+    </link>
+	<link name="line4">
+      <visual name="visual_line4">
+        <geometry>
+          <cylinder>
+            <radius>0.1</radius>
+            <length>109.728</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Red</name>
+          </script>
+        </material>
+      </visual>
+	  <pose>10 109.728 0 -1.5708 0 0 </pose>
+    </link>
+</model>

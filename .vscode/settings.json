@@ -71,5 +71,6 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/mission9-2022/cv/src/cv"
 }

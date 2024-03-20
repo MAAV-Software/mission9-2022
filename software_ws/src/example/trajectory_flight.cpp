@@ -65,13 +65,13 @@ std::vector<geometry_msgs::PoseStamped> read_waypoints(const std::string& file_p
             iss >> lat >> lon >> alt_ft;
 
             double x, y, z;
-            proj.Forward(lat, lon, alt_ft * 0.3048, x, y, z);
+            //proj.Forward(lat, lon, alt_ft * 0.3048, x, y, z);
 
-            waypoint.pose.position.x = x;
-            waypoint.pose.position.y = y;
-            waypoint.pose.position.z = z;
+            waypoint.pose.position.x = lat;
+            waypoint.pose.position.y = lon;
+            waypoint.pose.position.z = alt_ft;
 
-            ROS_INFO("Reading waypoints from txt file: x=%f, y=%f, z=%f", x, y, z);
+            ROS_INFO("Reading waypoints from txt file: x=%f, y=%f, z=%f", lat, lon, alt_ft);
             waypoints.push_back(waypoint);
         }
         file.close();
@@ -184,21 +184,25 @@ int main(int argc, char **argv) {
     // Fly to waypoints
     for (const auto& waypoint : waypoints) {
         ros::Time waypoint_start_time = ros::Time::now();
+        double lat = waypoint.pose.position.x;
+        double lon = waypoint.pose.position.y;
+        double alt_ft = waypoint.pose.position.z;
+        ROS_INFO("Flying to the following waypoint: x=%f, y=%f, z=%f", lat, lon, alt_ft);
 
-        while (ros::ok() && (ros::Time::now() - waypoint_start_time).toSec() < 25.0) {
-            //ROS_INFO("gooing to a waypoint...");
+        while (ros::ok() && (ros::Time::now() - waypoint_start_time).toSec() < 50.0) {
             target.position.x = waypoint.pose.position.x;
             target.position.y = waypoint.pose.position.y;
             target.position.z = waypoint.pose.position.z;
-            
+
             local_pos_pub.publish(target);
             ros::spinOnce();
             rate.sleep();
+        }
     }
 
     // Return to takeoff position
     ros::Time return_start_time = ros::Time::now();
-    while (ros::ok() && (ros::Time::now() - return_start_time).toSec() < 20.0) {
+    while (ros::ok() && (ros::Time::now() - return_start_time).toSec() < 50.0) {
         target.position.x = HOVER_X;
         target.position.y = HOVER_Y;
         target.position.z = FLIGHT_ALTITUDE;
@@ -215,10 +219,10 @@ int main(int argc, char **argv) {
     land_cmd.request.longitude = 0;
     land_cmd.request.altitude = 0;
 
+
     if (land_client.call(land_cmd) && land_cmd.response.success) {
         ROS_INFO("Landing...");
     }
 
     return 0;
-}
 }

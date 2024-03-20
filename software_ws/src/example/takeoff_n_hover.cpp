@@ -4,12 +4,13 @@
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/CommandTOL.h>
 #include <mavros_msgs/PositionTarget.h>
+#include <mavros_msgs/CommandTriggerControl.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#define FLIGHT_ALTITUDE 1.5f
-#define HOVER_DURATION 30.0
-#define HOVER_X 0.0  // Adjust these values according to your desired hover position
-#define HOVER_Y 0.0
+#define FLIGHT_ALTITUDE 24.4f
+#define HOVER_DURATION 120.0
+#define HOVER_X 10.0  // Adjust these values according to your desired hover position
+#define HOVER_Y 10.0
 
 // PID constants (adjust according to your needs)
 #define KP 1.0
@@ -52,6 +53,8 @@ int main(int argc, char **argv) {
             "mavros/set_mode");
     ros::ServiceClient land_client = nh.serviceClient<mavros_msgs::CommandTOL>(
             "mavros/cmd/land");
+    ros::ServiceClient img_capture_client = nh.serviceClient<mavros_msgs::CommandTriggerControl>(
+            "mavros/cmd/trigger_control");
 
     ros::Rate rate(20.0);
 
@@ -118,6 +121,14 @@ int main(int argc, char **argv) {
         target.position.x = HOVER_X;
         target.position.y = HOVER_Y;
         target.position.z = FLIGHT_ALTITUDE + output_z;
+
+        mavros_msgs::CommandTriggerControl ctc;
+        ctc.request.trigger_enable = true;
+        if (img_capture_client.call(ctc)) {
+            ROS_INFO("TRIGGER DA CAMERA: %s", ctc.response.success ? "SUCCESS" : "FAIL");
+        } else {
+            ROS_ERROR("FAILED TO CALL CAMERA SERVICE");
+        }
 
         local_pos_pub.publish(target);
         ros::spinOnce();
